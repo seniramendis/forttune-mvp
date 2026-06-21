@@ -164,20 +164,19 @@ export default function ForttuneApp() {
         {page === 'home' && (
           <div className="block">
             {/* LIGHT THEME HERO */}
-            <div className="bg-white border-b-[0.5px] border-[#0D1B3E]/10 pt-[36px] px-5 pb-[30px] relative overflow-hidden">
+            <div className="bg-white border-b-[0.5px] border-[#0D1B3E]/10 pt-[22px] px-5 pb-[22px] relative overflow-hidden">
               <div className="absolute -right-[40px] -top-[40px] w-[240px] h-[240px] rounded-full bg-[#E85D26]/10 pointer-events-none"></div>
-              <div className="inline-block bg-[#E85D26]/15 text-[#E85D26] text-[10px] font-medium tracking-[0.8px] uppercase px-[9px] py-[3px] rounded-[4px] mb-[12px]">Sri Lanka's IT hardware distributor</div>
-              <h1 className="text-[#0D1B3E] text-[24px] font-medium leading-[1.3] max-w-[380px] mb-[10px]">Premium tech,<br/>delivered to your <em className="text-[#E85D26] not-italic">door.</em></h1>
-              <p className="text-[#6B7A99] text-[13px] max-w-[340px] leading-[1.65] mb-[20px]">Laptops, servers, networking and peripherals from 15+ global brands. Trusted by 500+ channel partners across Sri Lanka.</p>
-              <div className="flex gap-[8px] flex-wrap relative z-10">
-                <button onClick={() => setPage('products')} className="bg-[#E85D26] text-white border-none px-[18px] py-[9px] rounded-[6px] text-[12px] font-medium cursor-pointer hover:bg-[#F47A4A] transition-colors">Browse products</button>
-                <button onClick={() => setPage('contact')} className="bg-transparent text-[#0D1B3E] border border-[#0D1B3E]/10 px-[18px] py-[9px] rounded-[6px] text-[12px] font-medium cursor-pointer hover:border-[#0D1B3E] transition-colors">Request a quote</button>
-              </div>
-              <div className="flex gap-5 mt-[26px] pt-[20px] border-t border-[#0D1B3E]/10 overflow-x-auto whitespace-nowrap hide-scrollbar">
-                <div><div className="text-[#0D1B3E] text-[18px] font-medium">500+</div><div className="text-[#6B7A99] text-[10px] mt-[2px]">Channel partners</div></div>
-                <div><div className="text-[#0D1B3E] text-[18px] font-medium">15+</div><div className="text-[#6B7A99] text-[10px] mt-[2px]">Global brands</div></div>
-                <div><div className="text-[#0D1B3E] text-[18px] font-medium">10k+</div><div className="text-[#6B7A99] text-[10px] mt-[2px]">Products</div></div>
-                <div><div className="text-[#0D1B3E] text-[18px] font-medium">20+</div><div className="text-[#6B7A99] text-[10px] mt-[2px]">Years experience</div></div>
+              <div className="flex items-center justify-between gap-[14px] flex-wrap relative z-10">
+                <div className="flex gap-[8px] flex-wrap">
+                  <button onClick={() => setPage('products')} className="bg-[#E85D26] text-white border-none px-[18px] py-[9px] rounded-[6px] text-[12px] font-medium cursor-pointer hover:bg-[#F47A4A] transition-colors">Browse products</button>
+                  <button onClick={() => setPage('contact')} className="bg-transparent text-[#0D1B3E] border border-[#0D1B3E]/10 px-[18px] py-[9px] rounded-[6px] text-[12px] font-medium cursor-pointer hover:border-[#0D1B3E] transition-colors">Request a quote</button>
+                </div>
+                <div className="flex gap-5 overflow-x-auto whitespace-nowrap hide-scrollbar">
+                  <div><div className="text-[#0D1B3E] text-[18px] font-medium">500+</div><div className="text-[#6B7A99] text-[10px] mt-[2px]">Channel partners</div></div>
+                  <div><div className="text-[#0D1B3E] text-[18px] font-medium">15+</div><div className="text-[#6B7A99] text-[10px] mt-[2px]">Global brands</div></div>
+                  <div><div className="text-[#0D1B3E] text-[18px] font-medium">10k+</div><div className="text-[#6B7A99] text-[10px] mt-[2px]">Products</div></div>
+                  <div><div className="text-[#0D1B3E] text-[18px] font-medium">20+</div><div className="text-[#6B7A99] text-[10px] mt-[2px]">Years experience</div></div>
+                </div>
               </div>
             </div>
 
@@ -250,12 +249,12 @@ export default function ForttuneApp() {
                 />
               </div>
             </div>
-            <div className="flex gap-[7px] flex-wrap mb-[14px]">
+            <div className="sticky top-[52px] z-30 -mx-5 px-5 py-[10px] mb-[14px] bg-[#F5F6FA]/95 backdrop-blur-sm border-b-[0.5px] border-[#0D1B3E]/10 flex gap-[7px] flex-wrap overflow-x-auto hide-scrollbar">
               {CATEGORIES.map(cat => (
                 <div 
                   key={cat} 
                   onClick={() => setActiveCat(cat)}
-                  className={`border-[0.5px] text-[11px] px-[11px] py-[4px] rounded-[14px] cursor-pointer transition-colors ${activeCat === cat ? 'bg-[#0D1B3E] text-white border-[#0D1B3E]' : 'bg-white text-[#6B7A99] border-[#0D1B3E]/10'}`}
+                  className={`border-[0.5px] text-[11px] px-[11px] py-[4px] rounded-[14px] cursor-pointer transition-colors whitespace-nowrap shrink-0 ${activeCat === cat ? 'bg-[#0D1B3E] text-white border-[#0D1B3E]' : 'bg-white text-[#6B7A99] border-[#0D1B3E]/10'}`}
                 >
                   {cat}
                 </div>
