@@ -7,35 +7,7 @@ import {
   Search, MapPin, Phone, MessageCircle, Mail, Clock, Package, X, Plus
 } from 'lucide-react';
 
-// --- DATA ---
 const CATEGORIES = ['All', 'Laptops', 'Desktops', 'Monitors', 'Networking', 'Printers', 'Servers', 'Storage', 'Accessories'];
-
-const PRODS = [
-  { id: 1, name: 'HP Elitebook 8 G1i 14 Ultra 7', brand: 'HP', cat: 'Laptops', price: 503000, spec: 'Ultra 7 14th Gen · Premium business', badge: 'hot' },
-  { id: 2, name: 'HP Probook 4 Ultra 7 255U', brand: 'HP', cat: 'Laptops', price: 299000, spec: 'Intel Ultra 7 · 14th Gen · DOS', badge: '' },
-  { id: 3, name: 'Dell Inspiron 3530 13th Gen i3', brand: 'Dell', cat: 'Laptops', price: 168000, spec: 'Core i3 13th Gen · in stock', badge: 'new' },
-  { id: 4, name: 'Lenovo V15 G4 i5 13th Gen', brand: 'Lenovo', cat: 'Laptops', price: 168000, spec: 'Core i5 13th Gen · in stock', badge: '' },
-  { id: 5, name: 'Asus Vivobook 15 A1504VA i7', brand: 'Asus', cat: 'Laptops', price: 298000, spec: 'Core i7 · 15.6" · in stock', badge: '' },
-  { id: 6, name: 'Acer Notebook Intel i5 13420H', brand: 'Acer', cat: 'Laptops', price: 195000, spec: 'i5 13420H · 15.6"', badge: '' },
-  { id: 7, name: 'Dell Inspiron 3530 i7', brand: 'Dell', cat: 'Laptops', price: 317600, spec: 'Core i7 · 15.6" · in stock', badge: '' },
-  { id: 8, name: 'Dell Inspiron 3030 i7 Desktop', brand: 'Dell', cat: 'Desktops', price: 284000, spec: 'i7 14th Gen · SFF form factor', badge: '' },
-  { id: 9, name: 'Monitor MSI G32C4X 31.5"', brand: 'MSI', cat: 'Monitors', price: 106000, spec: 'FHD · 250Hz · Curved', badge: 'hot' },
-  { id: 10, name: 'Monitor MSI G27CQ4 E2 27"', brand: 'MSI', cat: 'Monitors', price: 88500, spec: 'WQHD 2K · 170Hz · Curved', badge: '' },
-  { id: 11, name: 'Monitor MSI MAG 275F 27"', brand: 'MSI', cat: 'Monitors', price: 64500, spec: 'IPS · FHD · 180Hz', badge: 'new' },
-  { id: 12, name: 'Asus ProArt 31.5" PA329CRV', brand: 'Asus', cat: 'Monitors', price: 271000, spec: '4K · Professional monitor', badge: '' },
-  { id: 13, name: 'D-Link DGS-F1026P-E PoE Switch', brand: 'D-Link', cat: 'Networking', price: 94500, spec: '24GE PoE · 2 SFP · 250W', badge: '' },
-  { id: 14, name: 'D-Link DGS-F1018P-E PoE Switch', brand: 'D-Link', cat: 'Networking', price: 91500, spec: '16GE PoE · 2 SFP · 150W', badge: 'new' },
-  { id: 15, name: 'D-Link CAT6 UTP Cable 305M', brand: 'D-Link', cat: 'Networking', price: 66900, spec: '305m · 24AWG · Gray', badge: '' },
-  { id: 16, name: 'D-Link DGS-F1010P-E Switch', brand: 'D-Link', cat: 'Networking', price: 31900, spec: '8GE PoE · 2GE Uplink · 120W', badge: '' },
-  { id: 17, name: 'Brother PT-D610 Label Printer', brand: 'Brother', cat: 'Printers', price: 116300, spec: 'Laminated · Professional', badge: '' },
-  { id: 18, name: 'Brother ADS-3100 Duplex Scanner', brand: 'Brother', cat: 'Printers', price: 196500, spec: 'Color duplex · 40ppm', badge: 'new' },
-  { id: 19, name: 'Transcend 4TB External HDD', brand: 'Transcend', cat: 'Storage', price: 43600, spec: 'USB 3.1 · Portable', badge: '' },
-  { id: 20, name: 'Transcend 2TB External HDD', brand: 'Transcend', cat: 'Storage', price: 30500, spec: 'USB 3.1 · Portable', badge: '' },
-  { id: 21, name: 'Transcend 256GB Portable SSD', brand: 'Transcend', cat: 'Storage', price: 13600, spec: 'USB 3.1 Gen 2 · Compact', badge: '' },
-  { id: 22, name: 'Lexar SSD NM610 512GB', brand: 'Lexar', cat: 'Storage', price: 12500, spec: 'M.2 NVMe · Read 2100MB/s', badge: '' },
-  { id: 23, name: 'Tiandy 6MP 4G PT Solar Camera', brand: 'Tiandy', cat: 'Accessories', price: 26390, spec: '6MP · Solar · 4G · PT', badge: 'new' },
-  { id: 24, name: 'A4Tech GH-30 Gaming Case', brand: 'A4Tech', cat: 'Accessories', price: 15500, spec: 'Tempered glass · ATX', badge: '' },
-];
 
 const getCatIcon = (cat: string, className: string = "") => {
   switch (cat) {
@@ -54,6 +26,9 @@ const getCatIcon = (cat: string, className: string = "") => {
 const formatLKR = (num: number) => `Rs ${num.toLocaleString('en-LK')}`;
 
 export default function ForttuneApp() {
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
   const [page, setPage] = useState('home');
   const [cart, setCart] = useState<any[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -61,6 +36,31 @@ export default function ForttuneApp() {
   const [search, setSearch] = useState('');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  // Fetch Database Data
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        
+        // Safety net: check if the response is OK before trying to read JSON
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        setInventory(data);
+      } catch (err) {
+        console.error("Failed to load inventory", err);
+        // Fallback to empty array to prevent map() errors on the frontend
+        setInventory([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Toast Timer
   useEffect(() => {
     if (toastMsg) {
       const timer = setTimeout(() => setToastMsg(null), 2600);
@@ -76,10 +76,10 @@ export default function ForttuneApp() {
       if (ex) return prev.map(x => x.id === product.id ? { ...x, qty: x.qty + 1 } : x);
       return [...prev, { ...product, qty: 1 }];
     });
-    showToast(`${product.brand} — added to cart`);
+    showToast(`${product.name} — added to cart`);
   };
 
-  const removeFromCart = (id: number) => {
+  const removeFromCart = (id: string) => {
     setCart(prev => prev.filter(x => x.id !== id));
   };
 
@@ -88,22 +88,21 @@ export default function ForttuneApp() {
     setPage('products');
   };
 
-  const filteredProducts = PRODS.filter(p => {
-    const catOk = activeCat === 'All' || p.cat === activeCat;
+  const filteredProducts = inventory.filter(p => {
+    const catOk = activeCat === 'All' || p.category === activeCat;
     const sOk = !search || p.name.toLowerCase().includes(search.toLowerCase()) || 
-                p.brand.toLowerCase().includes(search.toLowerCase()) || 
-                p.spec.toLowerCase().includes(search.toLowerCase());
+                (p.brand && p.brand.toLowerCase().includes(search.toLowerCase())) || 
+                (p.spec && p.spec.toLowerCase().includes(search.toLowerCase()));
     return catOk && sOk;
   });
 
   const cartTotal = cart.reduce((s, x) => s + (x.price * x.qty), 0);
   const cartCount = cart.reduce((s, x) => s + x.qty, 0);
 
-  // --- HARDCODED LIGHT THEME PRODUCT CARD ---
   const ProductCard = ({ p }: { p: any }) => (
     <div className="bg-white border-[0.5px] border-[#0D1B3E]/10 rounded-[10px] overflow-hidden cursor-pointer hover:border-[#E85D26] transition-colors flex flex-col h-full">
       <div className="bg-[#F5F6FA] h-[110px] flex items-center justify-center relative shrink-0">
-        {getCatIcon(p.cat, "w-10 h-10 text-[#1A2F5E]/20")}
+        {getCatIcon(p.category, "w-10 h-10 text-[#1A2F5E]/20")}
         {p.badge === 'hot' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#E85D26]">Hot</span>}
         {p.badge === 'new' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#1D9E75]">New</span>}
       </div>
@@ -163,7 +162,7 @@ export default function ForttuneApp() {
         {/* PAGE: HOME */}
         {page === 'home' && (
           <div className="block">
-            {/* LIGHT THEME HERO */}
+            {/* HERO SECTION */}
             <div className="bg-white border-b-[0.5px] border-[#0D1B3E]/10 pt-[36px] px-5 pb-[30px] relative overflow-hidden">
               <div className="absolute -right-[40px] -top-[40px] w-[240px] h-[240px] rounded-full bg-[#E85D26]/10 pointer-events-none"></div>
               <div className="inline-block bg-[#E85D26]/15 text-[#E85D26] text-[10px] font-medium tracking-[0.8px] uppercase px-[9px] py-[3px] rounded-[4px] mb-[12px]">Sri Lanka's IT hardware distributor</div>
@@ -196,7 +195,7 @@ export default function ForttuneApp() {
               ))}
             </div>
 
-            {/* LIGHT THEME CATEGORIES SECTION */}
+            {/* CATEGORIES SECTION */}
             <div className="p-[18px] px-5 max-w-7xl mx-auto bg-[#F5F6FA]">
               <div className="text-[10px] font-medium text-[#E85D26] uppercase tracking-[0.8px] mb-[4px]">Shop by category</div>
               <div className="flex items-center justify-between mb-[14px]">
@@ -216,9 +215,14 @@ export default function ForttuneApp() {
                 <div className="text-[15px] font-medium text-[#0D1B3E] m-0">Hot picks</div>
                 <span onClick={() => setPage('products')} className="text-[11px] text-[#E85D26] cursor-pointer hover:underline">View all →</span>
               </div>
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(155px,1fr))] gap-[10px]">
-                {PRODS.filter(p => p.badge).slice(0,6).map(p => <ProductCard key={p.id} p={p} />)}
-              </div>
+              
+              {isLoading ? (
+                <div className="text-[#6B7A99] text-[13px] py-5">Loading products...</div>
+              ) : (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(155px,1fr))] gap-[10px]">
+                  {inventory.filter(p => p.badge).slice(0,6).map(p => <ProductCard key={p.id} p={p} />)}
+                </div>
+              )}
 
               <div className="mt-[18px]">
                 <div className="bg-white border-[0.5px] border-[#0D1B3E]/10 rounded-[10px] py-[18px] px-5 flex items-center justify-between gap-[14px] flex-wrap mb-[6px]">
@@ -261,7 +265,10 @@ export default function ForttuneApp() {
                 </div>
               ))}
             </div>
-            {filteredProducts.length > 0 ? (
+            
+            {isLoading ? (
+              <div className="text-[#6B7A99] text-[13px] py-5">Loading products...</div>
+            ) : filteredProducts.length > 0 ? (
               <div className="grid grid-cols-[repeat(auto-fill,minmax(155px,1fr))] gap-[10px]">
                 {filteredProducts.map(p => <ProductCard key={p.id} p={p} />)}
               </div>
@@ -328,7 +335,7 @@ export default function ForttuneApp() {
                 cart.map((x, i) => (
                   <div key={i} className="flex gap-[9px] mb-[12px] pb-[12px] border-b-[0.5px] border-[#0D1B3E]/10">
                     <div className="bg-[#F5F6FA] rounded-[6px] w-[42px] h-[42px] flex items-center justify-center shrink-0">
-                      {getCatIcon(x.cat, "w-[18px] h-[18px] text-[#1A2F5E]/35")}
+                      {getCatIcon(x.category, "w-[18px] h-[18px] text-[#1A2F5E]/35")}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-[12px] font-medium text-[#0D1B3E] mb-[2px] leading-tight">{x.name}</div>
