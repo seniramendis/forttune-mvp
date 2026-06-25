@@ -11,9 +11,16 @@ export default function AdminDashboard() {
   // We fetch products here for the inventory table
   useEffect(() => {
     fetch('/api/products')
-      .then(res => res.json())
-      .then(data => setProducts(data))
-      .catch(err => console.error(err));
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(body => {
+            throw new Error(body?.error ?? `Server error ${res.status}`);
+          });
+        }
+        return res.json();
+      })
+      .then(data => setProducts(Array.isArray(data) ? data : []))
+      .catch(err => console.error('Failed to load products:', err));
   }, []);
 
   // Mock data for the chart MVP (You will replace this with live Order data later)
