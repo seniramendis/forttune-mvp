@@ -1,0 +1,77 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Get this from Supabase
+}
+
+enum Role {
+  ADMIN
+  CASHIER
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH       // Used in POS
+  CARD       // Used in POS & Web
+  ONLINE     // Used in Web
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  name      String?
+  role      Role     @default(CUSTOMER)
+  password  String?  // For credential auth MVP
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  brand       String
+  category    String      // e.g., Laptops, Monitors, Networking
+  price       Float
+  stock       Int         @default(0)
+  spec        String?     // Short specs
+  badge       String?     // 'hot', 'new', etc.
+  sku         String?     @unique // For POS Barcode scanning
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Order {
+  id            String        @id @default(cuid())
+  userId        String?       // Nullable if walk-in POS customer
+  user          User?         @relation(fields: [userId], references: [id])
+  status        OrderStatus   @default(PENDING)
+  total         Float
+  paymentMethod PaymentMethod
+  isPosOrder    Boolean       @default(false) // Distinguish Web vs POS sales
+  items         OrderItem[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float   // Price at the time of purchase
+}
