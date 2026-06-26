@@ -40,7 +40,7 @@ export default function AdminDashboard() {
       if (res.ok) {
         setIsModalOpen(false);
         setFormData({ name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '' });
-        fetchInventory(); // Instantly refresh the table
+        fetchInventory(); // Instantly refresh table manually on target window
         alert('Product added successfully!');
       } else {
         alert('Failed to add product.');
