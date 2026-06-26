@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle, Users, X, Edit2, Trash2, Upload } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle, Users, X, Edit2, Trash2, Upload, Mail, Calendar, ShoppingBag } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [customersLoading, setCustomersLoading] = useState(false);
+  const [customersError, setCustomersError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('inventory');
   const [apiError, setApiError] = useState<string | null>(null);
   
@@ -36,9 +39,35 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchCustomers = async () => {
+    setCustomersLoading(true);
+    setCustomersError(null);
+    try {
+      const res = await fetch("/api/customers");
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) {
+        setCustomers(data);
+      } else {
+        setCustomersError(data.error || "Failed to load customers.");
+        setCustomers([]);
+      }
+    } catch {
+      setCustomersError("Could not reach the server.");
+      setCustomers([]);
+    } finally {
+      setCustomersLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchInventory();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "customers") {
+      fetchCustomers();
+    }
+  }, [activeTab]);
 
   // Converts a device file into a Base64 string for direct database storage
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,8 +183,8 @@ export default function AdminDashboard() {
           <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[#6B7A99] hover:bg-gray-50 hover:text-[#0D1B3E] transition-colors">
             <ShoppingCart size={18} /> Orders
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[#6B7A99] hover:bg-gray-50 hover:text-[#0D1B3E] transition-colors">
-            <Users size={18} /> Customers
+          <button onClick={() => setActiveTab('customers')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'customers' ? 'bg-[#E85D26]/10 text-[#E85D26]' : 'text-[#6B7A99] hover:bg-gray-50 hover:text-[#0D1B3E]'}`}>
+            <Users size={18} /> Customers {customers.length > 0 && <span className="ml-auto bg-[#0D1B3E]/10 text-[#0D1B3E] py-0.5 px-2 rounded-full text-[10px]">{customers.length}</span>}
           </button>
         </div>
       </div>
@@ -268,6 +297,93 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* CUSTOMERS TAB */}
+          {activeTab === 'customers' && (
+            <div className="flex-1 overflow-auto p-6">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-lg font-semibold text-[#0D1B3E]">Registered Customers</h2>
+                  <p className="text-sm text-[#6B7A99] mt-0.5">All accounts created via the website</p>
+                </div>
+                <a href="/register" target="_blank" className="text-sm text-[#E85D26] font-medium hover:underline">+ Register page</a>
+              </div>
+
+              {customersError && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-4">
+                  <AlertCircle size={16} /> {customersError}
+                </div>
+              )}
+
+              {customersLoading ? (
+                <div className="flex items-center justify-center py-16 text-[#6B7A99]">
+                  <div className="animate-spin w-6 h-6 border-2 border-[#E85D26] border-t-transparent rounded-full mr-3"></div>
+                  Loading customers…
+                </div>
+              ) : customers.length === 0 && !customersError ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <Users size={40} className="text-[#6B7A99]/40 mb-3" />
+                  <p className="text-[#0D1B3E] font-medium">No customers yet</p>
+                  <p className="text-sm text-[#6B7A99] mt-1">Customers will appear here once they register on your site.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl border border-[#0D1B3E]/10 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[#0D1B3E]/10 bg-[#F5F6FA]">
+                        <th className="text-left p-4 pl-6 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Customer</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Email</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Orders</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Total Spent</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Last Order</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Joined</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {customers.map(c => (
+                        <tr key={c.id} className="border-b last:border-0 border-[#0D1B3E]/5 hover:bg-gray-50/50">
+                          <td className="p-4 pl-6">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-[#0D1B3E] text-white flex items-center justify-center text-xs font-semibold shrink-0">
+                                {(c.name || c.email || '?').charAt(0).toUpperCase()}
+                              </div>
+                              <span className="font-medium text-[#0D1B3E]">{c.name || <span className="text-[#6B7A99] italic">No name</span>}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-[#6B7A99]">
+                            <div className="flex items-center gap-1.5">
+                              <Mail size={13} className="shrink-0" />
+                              {c.email || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-1.5 text-[#0D1B3E]">
+                              <ShoppingBag size={13} className="text-[#6B7A99] shrink-0" />
+                              {c.totalOrders}
+                            </div>
+                          </td>
+                          <td className="p-4 font-medium text-[#0D1B3E]">
+                            {c.totalSpent > 0 ? `Rs ${c.totalSpent.toLocaleString('en-LK')}` : <span className="text-[#6B7A99]">—</span>}
+                          </td>
+                          <td className="p-4 text-[#6B7A99]">
+                            {c.lastOrderDate
+                              ? new Date(c.lastOrderDate).toLocaleDateString('en-LK', { day: 'numeric', month: 'short', year: 'numeric' })
+                              : '—'}
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-1.5 text-[#6B7A99]">
+                              <Calendar size={13} className="shrink-0" />
+                              {new Date(c.createdAt).toLocaleDateString('en-LK', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 

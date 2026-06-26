@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, 
   Laptop, Monitor, Wifi, Printer, Server, Database, Mouse, 
-  Search, MapPin, Phone, MessageCircle, Mail, Clock, Package, X, Plus, ChevronLeft, Minus, Trash2, CheckCircle
+  Search, MapPin, Phone, MessageCircle, Mail, Clock, Package, X, Plus, ChevronLeft, Minus, Trash2, CheckCircle,
+  User, LogOut, ChevronDown
 } from 'lucide-react';
 
 const CATEGORIES = ['All', 'Laptops', 'Desktops', 'Monitors', 'Networking', 'Printers', 'Servers', 'Storage', 'Accessories'];
@@ -38,6 +39,23 @@ export default function ForttuneApp() {
   const [activeCat, setActiveCat] = useState('All');
   const [search, setSearch] = useState('');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('forttune_user');
+      if (stored) setCurrentUser(JSON.parse(stored));
+    } catch {}
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('forttune_user');
+    localStorage.removeItem('forttune_session');
+    setCurrentUser(null);
+    setUserMenuOpen(false);
+  };
 
   // 1. Fetch initial records
   useEffect(() => {
@@ -197,10 +215,52 @@ export default function ForttuneApp() {
             </button>
           ))}
         </div>
-        <button onClick={() => setIsCartOpen(true)} className="bg-[#0D1B3E] hover:bg-[#1A2F5E] transition-colors border-none text-white px-4 py-2 rounded-lg text-[13px] font-medium cursor-pointer flex items-center gap-2 shadow-md">
-          <ShoppingCart size={16} />
-          Cart ({cartCount})
-        </button>
+        <div className="flex items-center gap-3">
+          {/* AUTH SECTION */}
+          {currentUser ? (
+            <div className="relative">
+              <button
+                onClick={() => setUserMenuOpen(v => !v)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#0D1B3E]/15 hover:bg-[#F5F6FA] transition-colors text-[13px] font-medium text-[#0D1B3E]"
+              >
+                <div className="w-6 h-6 rounded-full bg-[#E85D26] text-white flex items-center justify-center text-[11px] font-bold">
+                  {(currentUser.name || currentUser.email || '?').charAt(0).toUpperCase()}
+                </div>
+                <span className="hidden sm:block max-w-[120px] truncate">{currentUser.name || currentUser.email}</span>
+                <ChevronDown size={13} className="text-[#6B7A99]" />
+              </button>
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-[#0D1B3E]/10 py-1 z-50">
+                  <div className="px-4 py-2.5 border-b border-[#0D1B3E]/10">
+                    <p className="text-xs font-semibold text-[#0D1B3E] truncate">{currentUser.name || 'Customer'}</p>
+                    <p className="text-xs text-[#6B7A99] truncate mt-0.5">{currentUser.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut size={14} /> Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <a href="/login" className="px-3 py-1.5 text-[13px] font-semibold text-[#0D1B3E] hover:text-[#E85D26] transition-colors">
+                Sign In
+              </a>
+              <a href="/register" className="px-3 py-1.5 rounded-lg bg-[#E85D26] text-white text-[13px] font-semibold hover:bg-[#F47A4A] transition-colors">
+                Register
+              </a>
+            </div>
+          )}
+
+          {/* CART */}
+          <button onClick={() => setIsCartOpen(true)} className="bg-[#0D1B3E] hover:bg-[#1A2F5E] transition-colors border-none text-white px-4 py-2 rounded-lg text-[13px] font-medium cursor-pointer flex items-center gap-2 shadow-md">
+            <ShoppingCart size={16} />
+            Cart ({cartCount})
+          </button>
+        </div>
       </nav>
 
       {/* MOBILE NAV */}
@@ -211,6 +271,15 @@ export default function ForttuneApp() {
             {p}
           </button>
         ))}
+        {currentUser ? (
+          <button onClick={handleLogout} className="text-[11px] font-medium flex flex-col items-center gap-1 text-red-500">
+            <LogOut size={18} /> Sign Out
+          </button>
+        ) : (
+          <a href="/login" className="text-[11px] font-medium flex flex-col items-center gap-1 text-[#6B7A99]">
+            <User size={18} /> Sign In
+          </a>
+        )}
       </div>
 
       <div className="pb-20 sm:pb-10">
