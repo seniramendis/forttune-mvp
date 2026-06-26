@@ -127,7 +127,7 @@ export default function ForttuneApp() {
     // Calculate if the item is less than 7 days old
     const isRecentlyAdded = p.createdAt ? (new Date().getTime() - new Date(p.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
     
-    // Show green badge if manually tagged as 'new' OR if created within 1 week
+    // Explicitly allow New badge to show regardless of whether it's in stock or out of stock
     const showNewBadge = p.badge === 'new' || isRecentlyAdded;
 
     return (
