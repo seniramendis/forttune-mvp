@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('inventory'); // Defaults to inventory tab
   
   // Modal and Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,7 +40,7 @@ export default function AdminDashboard() {
       if (res.ok) {
         setIsModalOpen(false);
         setFormData({ name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '' });
-        fetchInventory(); // Instantly refresh table manually on target window
+        fetchInventory();
         alert('Product added successfully!');
       } else {
         alert('Failed to add product.');
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
   return (
     <div className="flex h-screen w-full bg-[#F5F6FA] font-sans text-[#0D1B3E]">
       
-      {/* SIDEBAR */}
+      {/* EXCLUSIVE CLEAN WHITE SIDEBAR */}
       <div className="w-[260px] bg-white border-r border-[#0D1B3E]/10 flex flex-col shrink-0 z-10">
         <div className="h-[70px] flex items-center px-6 border-b border-[#0D1B3E]/10 shrink-0">
           <div className="w-8 h-8 bg-[#E85D26] rounded flex items-center justify-center font-bold text-white mr-3">F</div>
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN CONTENT PANELS */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         
         {/* HEADER */}
@@ -102,12 +102,11 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        {/* CONTENT SCROLL AREA */}
+        {/* WORKSPACE */}
         <div className="flex-1 overflow-y-auto p-8">
           
           {activeTab === 'overview' && (
             <div className="space-y-6 max-w-7xl">
-              {/* STATS ROW */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white rounded-xl p-6 border border-[#0D1B3E]/10 shadow-sm">
                   <div className="flex justify-between items-start mb-4">
@@ -135,7 +134,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* CHART AREA */}
               <div className="bg-white rounded-xl p-6 border border-[#0D1B3E]/10 shadow-sm">
                 <h3 className="text-base font-semibold mb-6">Revenue Trend</h3>
                 <div className="h-[300px] w-full">
@@ -210,7 +208,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ADD PRODUCT MODAL */}
+      {/* MODAL SYSTEM */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-[#0D1B3E]/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
