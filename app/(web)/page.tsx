@@ -127,8 +127,8 @@ export default function ForttuneApp() {
     // Calculate if the item is less than 7 days old
     const isRecentlyAdded = p.createdAt ? (new Date().getTime() - new Date(p.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
     
-    // Explicitly allow New badge to show regardless of whether it's in stock or out of stock
-    const showNewBadge = p.badge === 'new' || isRecentlyAdded;
+    // Hide New badge if the product has 0 stock, otherwise check the rules
+    const showNewBadge = p.stock > 0 && (p.badge === 'new' || isRecentlyAdded);
 
     return (
       <div 
@@ -139,7 +139,7 @@ export default function ForttuneApp() {
           {getCatIcon(p.category, "w-10 h-10 text-[#1A2F5E]/20")}
           
           {/* BADGE PLACEMENT SYSTEM */}
-          {p.badge === 'hot' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#E85D26]">Hot</span>}
+          {p.stock > 0 && p.badge === 'hot' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#E85D26]">Hot</span>}
           {showNewBadge && p.badge !== 'hot' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#1D9E75]">New</span>}
           
           {p.stock === 0 && <span className="absolute top-[7px] right-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-red-600 bg-red-100">Out of Stock</span>}
@@ -216,8 +216,8 @@ export default function ForttuneApp() {
               <div className="w-full md:w-1/2 bg-[#F5F6FA] p-12 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#0D1B3E]/10 relative min-h-[300px]">
                 {getCatIcon(selectedProduct.category, "w-32 h-32 text-[#1A2F5E]/10")}
                 <div className="absolute top-6 left-6 flex gap-2">
-                  {selectedProduct.badge === 'hot' && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md text-white bg-[#E85D26] shadow-sm">🔥 Trending</span>}
-                  {(selectedProduct.badge === 'new' || (selectedProduct.createdAt && (new Date().getTime() - new Date(selectedProduct.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000)) && selectedProduct.badge !== 'hot' && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md text-white bg-[#1D9E75] shadow-sm">New Arrival</span>}
+                  {selectedProduct.stock > 0 && selectedProduct.badge === 'hot' && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md text-white bg-[#E85D26] shadow-sm">🔥 Trending</span>}
+                  {selectedProduct.stock > 0 && (selectedProduct.badge === 'new' || (selectedProduct.createdAt && (new Date().getTime() - new Date(selectedProduct.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000)) && selectedProduct.badge !== 'hot' && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md text-white bg-[#1D9E75] shadow-sm">New Arrival</span>}
                 </div>
               </div>
 
