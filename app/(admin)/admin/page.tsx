@@ -1,29 +1,57 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle, Users } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle, Users, X } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Modal and Form State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: ''
+  });
 
-  // We fetch products here for the inventory table
-  useEffect(() => {
+  const fetchInventory = () => {
     fetch('/api/products')
-      .then(res => {
-        if (!res.ok) {
-          return res.json().then(body => {
-            throw new Error(body?.error ?? `Server error ${res.status}`);
-          });
-        }
-        return res.json();
-      })
-      .then(data => setProducts(Array.isArray(data) ? data : []))
-      .catch(err => console.error('Failed to load products:', err));
+      .then(res => res.json())
+      .then(data => setProducts(data))
+      .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    fetchInventory();
   }, []);
 
-  // Mock data for the chart MVP (You will replace this with live Order data later)
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      
+      if (res.ok) {
+        setIsModalOpen(false);
+        setFormData({ name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '' });
+        fetchInventory(); // Instantly refresh the table
+        alert('Product added successfully!');
+      } else {
+        alert('Failed to add product.');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const salesData = [
     { name: 'Mon', revenue: 450000 },
     { name: 'Tue', revenue: 820000 },
@@ -129,7 +157,10 @@ export default function AdminDashboard() {
             <div className="bg-white rounded-xl border border-[#0D1B3E]/10 shadow-sm overflow-hidden max-w-7xl">
               <div className="p-5 border-b border-[#0D1B3E]/10 flex justify-between items-center bg-gray-50">
                 <h3 className="font-semibold text-[15px]">Product Database</h3>
-                <button className="bg-[#0D1B3E] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#1A2F5E] transition-colors">
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-[#0D1B3E] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#1A2F5E] transition-colors"
+                >
                   + Add Product
                 </button>
               </div>
@@ -148,7 +179,7 @@ export default function AdminDashboard() {
                     {products.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="text-center p-8 text-[#6B7A99]">
-                          No products in database. Add some directly via Prisma Studio!
+                          No products found.
                         </td>
                       </tr>
                     ) : (
@@ -178,6 +209,70 @@ export default function AdminDashboard() {
 
         </div>
       </div>
+
+      {/* ADD PRODUCT MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-[#0D1B3E]/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-[#0D1B3E]/10 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-[#0D1B3E]">Add New Product</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-[#6B7A99] hover:text-[#E85D26] transition-colors"><X size={20}/></button>
+            </div>
+            
+            <form onSubmit={handleAddProduct} className="p-6">
+              <div className="grid grid-cols-2 gap-5">
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Product Name</label>
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="e.g. HP Elitebook 8 G1i" />
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Brand</label>
+                  <input required type="text" value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="e.g. HP" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Category</label>
+                  <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]">
+                    <option>Laptops</option><option>Desktops</option><option>Monitors</option>
+                    <option>Networking</option><option>Printers</option><option>Storage</option><option>Accessories</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Price (LKR)</label>
+                  <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="0.00" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Stock Quantity</label>
+                  <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="0" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">SKU (Barcode)</label>
+                  <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="e.g. 849302" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Short Specs</label>
+                  <input type="text" value={formData.spec} onChange={e => setFormData({...formData, spec: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="e.g. Ultra 7 14th Gen" />
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-sm font-medium text-[#6B7A99] hover:bg-gray-100 rounded-lg transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 text-sm font-medium text-white bg-[#E85D26] hover:bg-[#F47A4A] rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2">
+                  {isSubmitting ? 'Saving...' : 'Save Product'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
