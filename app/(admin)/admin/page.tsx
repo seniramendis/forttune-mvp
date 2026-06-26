@@ -1,18 +1,20 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle, Users, X } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle, Users, X, Edit2, Trash2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState('inventory'); // Defaults to inventory tab
+  const [activeTab, setActiveTab] = useState('inventory');
   
-  // Modal and Form State
+  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [formData, setFormData] = useState({
-    name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: ''
+    name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '', badge: ''
   });
 
   const fetchInventory = () => {
@@ -26,29 +28,72 @@ export default function AdminDashboard() {
     fetchInventory();
   }, []);
 
-  const handleAddProduct = async (e: React.FormEvent) => {
+  // Open modal for a clean insert form
+  const openAddModal = () => {
+    setEditingProduct(null);
+    setFormData({ name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '', badge: '' });
+    setIsModalOpen(true);
+  };
+
+  // Open modal populated with existing record to edit
+  const openEditModal = (product: any) => {
+    setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      brand: product.brand || '',
+      category: product.category || 'Laptops',
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      sku: product.sku || '',
+      spec: product.spec || '',
+      badge: product.badge || ''
+    });
+    setIsModalOpen(true);
+  };
+
+  // Handles both Create and Update operations
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
+    const url = editingProduct ? `/api/products?id=${editingProduct.id}` : '/api/products';
+    const method = editingProduct ? 'PUT' : 'POST';
+
     try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
+      const res = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
       
       if (res.ok) {
         setIsModalOpen(false);
-        setFormData({ name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '' });
         fetchInventory();
-        alert('Product added successfully!');
+        alert(editingProduct ? 'Product updated successfully!' : 'Product added successfully!');
       } else {
-        alert('Failed to add product.');
+        alert('Action failed.');
       }
     } catch (err) {
       console.error(err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Handles product deletion sequence
+  const handleDeleteProduct = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+    try {
+      const res = await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchInventory();
+        alert('Product removed successfully!');
+      } else {
+        alert('Failed to delete product.');
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -68,7 +113,7 @@ export default function AdminDashboard() {
   return (
     <div className="flex h-screen w-full bg-[#F5F6FA] font-sans text-[#0D1B3E]">
       
-      {/* EXCLUSIVE CLEAN WHITE SIDEBAR */}
+      {/* SIDEBAR */}
       <div className="w-[260px] bg-white border-r border-[#0D1B3E]/10 flex flex-col shrink-0 z-10">
         <div className="h-[70px] flex items-center px-6 border-b border-[#0D1B3E]/10 shrink-0">
           <div className="w-8 h-8 bg-[#E85D26] rounded flex items-center justify-center font-bold text-white mr-3">F</div>
@@ -90,7 +135,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* MAIN CONTENT PANELS */}
+      {/* MAIN CONTENT CONTAINER */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         
         {/* HEADER */}
@@ -102,7 +147,7 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        {/* WORKSPACE */}
+        {/* WORKSPACE AREA */}
         <div className="flex-1 overflow-y-auto p-8">
           
           {activeTab === 'overview' && (
@@ -156,7 +201,7 @@ export default function AdminDashboard() {
               <div className="p-5 border-b border-[#0D1B3E]/10 flex justify-between items-center bg-gray-50">
                 <h3 className="font-semibold text-[15px]">Product Database</h3>
                 <button 
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={openAddModal}
                   className="bg-[#0D1B3E] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#1A2F5E] transition-colors"
                 >
                   + Add Product
@@ -171,12 +216,13 @@ export default function AdminDashboard() {
                       <th className="font-medium p-4">Category</th>
                       <th className="font-medium p-4">Price (LKR)</th>
                       <th className="font-medium p-4">Stock</th>
+                      <th className="font-medium p-4 text-right pr-6">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {products.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="text-center p-8 text-[#6B7A99]">
+                        <td colSpan={6} className="text-center p-8 text-[#6B7A99]">
                           No products found.
                         </td>
                       </tr>
@@ -196,6 +242,23 @@ export default function AdminDashboard() {
                               {product.stock} units
                             </span>
                           </td>
+                          {/* ROW ACTIONS COLUMN */}
+                          <td className="p-4 text-right pr-6 space-x-2 whitespace-nowrap">
+                            <button 
+                              onClick={() => openEditModal(product)}
+                              className="text-gray-500 hover:text-blue-600 p-1 transition-colors"
+                              title="Edit Item"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteProduct(product.id, product.name)}
+                              className="text-gray-500 hover:text-red-600 p-1 transition-colors"
+                              title="Delete Item"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </td>
                         </tr>
                       ))
                     )}
@@ -208,16 +271,18 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* MODAL SYSTEM */}
+      {/* FORM MODAL (CREATES & EDITS) */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-[#0D1B3E]/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-[#0D1B3E]/10 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-[#0D1B3E]">Add New Product</h2>
+              <h2 className="text-lg font-semibold text-[#0D1B3E]">
+                {editingProduct ? 'Edit Product Parameters' : 'Add New Product'}
+              </h2>
               <button onClick={() => setIsModalOpen(false)} className="text-[#6B7A99] hover:text-[#E85D26] transition-colors"><X size={20}/></button>
             </div>
             
-            <form onSubmit={handleAddProduct} className="p-6">
+            <form onSubmit={handleFormSubmit} className="p-6">
               <div className="grid grid-cols-2 gap-5">
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Product Name</label>
@@ -255,6 +320,15 @@ export default function AdminDashboard() {
                 <div>
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Short Specs</label>
                   <input type="text" value={formData.spec} onChange={e => setFormData({...formData, spec: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="e.g. Ultra 7 14th Gen" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Badge Condition</label>
+                  <select value={formData.badge} onChange={e => setFormData({...formData, badge: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]">
+                    <option value="">None</option>
+                    <option value="new">Force New Badge</option>
+                    <option value="hot">Force Hot Badge</option>
+                  </select>
                 </div>
               </div>
 
