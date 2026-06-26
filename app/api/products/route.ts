@@ -9,10 +9,8 @@ export async function GET() {
   try {
     const products = await prisma.product.findMany({
       where: {
-        // Cast as any temporarily to prevent TypeScript from blocking the build 
-        // while the generated Prisma client updates on Vercel's containers
-        ...({ deletedAt: null } as any)
-      },
+        deletedAt: null
+      } as any,
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(products);
@@ -94,7 +92,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
     }
 
-    // Safely cast update payload to bypass client type validation blocks
+    // Force data parameters to allow soft-deleting alongside the Vercel build schema
     await prisma.product.update({
       where: { id },
       data: { deletedAt: new Date() } as any
