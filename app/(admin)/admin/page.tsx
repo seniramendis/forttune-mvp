@@ -130,7 +130,10 @@ export default function AdminDashboard() {
 
   const totalRevenue = salesData.reduce((acc, curr) => acc + curr.revenue, 0);
   const validProductList = Array.isArray(products) ? products : [];
-  const lowStockItems = validProductList.filter(p => p && typeof p.stock === 'number' && p.stock < 5).length;
+  
+  // Frontend Safety Filter: Keeps the raw creation stream open while dropping soft-deleted entries from the tables
+  const activeProducts = validProductList.filter(p => p && p.badge !== 'archived_hidden');
+  const lowStockItems = activeProducts.filter(p => typeof p.stock === 'number' && p.stock < 5).length;
 
   return (
     <div className="flex h-screen w-full bg-[#F5F6FA] font-sans text-[#0D1B3E]">
@@ -239,12 +242,12 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {validProductList.length === 0 ? (
+                    {activeProducts.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="text-center p-8 text-[#6B7A99]">No products found.</td>
                       </tr>
                     ) : (
-                      validProductList.map((product) => product && (
+                      activeProducts.map((product) => product && (
                         <tr key={product.id} className="border-b last:border-0 border-[#0D1B3E]/5 hover:bg-gray-50/50">
                           <td className="p-4 pl-6 text-[#6B7A99] font-mono text-xs">{product.sku || 'N/A'}</td>
                           <td className="p-4 font-medium text-[#0D1B3E]">{product.name}</td>
