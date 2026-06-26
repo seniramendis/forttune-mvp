@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, 
   Laptop, Monitor, Wifi, Printer, Server, Database, Mouse, 
-  Search, MapPin, Phone, MessageCircle, Mail, Clock, Package, X, Plus, ChevronLeft, Minus, Trash2
+  Search, MapPin, Phone, MessageCircle, Mail, Clock, Package, X, Plus, ChevronLeft, Minus, Trash2, CheckCircle
 } from 'lucide-react';
 
 const CATEGORIES = ['All', 'Laptops', 'Desktops', 'Monitors', 'Networking', 'Printers', 'Servers', 'Storage', 'Accessories'];
