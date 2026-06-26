@@ -14,7 +14,7 @@ export default function AdminDashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
-    name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '', badge: ''
+    name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '', badge: '', image: ''
   });
 
   const fetchInventory = () => {
@@ -28,14 +28,12 @@ export default function AdminDashboard() {
     fetchInventory();
   }, []);
 
-  // Open modal for a clean insert form
   const openAddModal = () => {
     setEditingProduct(null);
-    setFormData({ name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '', badge: '' });
+    setFormData({ name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '', badge: '', image: '' });
     setIsModalOpen(true);
   };
 
-  // Open modal populated with existing record to edit
   const openEditModal = (product: any) => {
     setEditingProduct(product);
     setFormData({
@@ -46,12 +44,12 @@ export default function AdminDashboard() {
       stock: product.stock.toString(),
       sku: product.sku || '',
       spec: product.spec || '',
-      badge: product.badge || ''
+      badge: product.badge || '',
+      image: product.image || ''
     });
     setIsModalOpen(true);
   };
 
-  // Handles both Create and Update operations
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -80,7 +78,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Handles product deletion sequence
   const handleDeleteProduct = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
@@ -135,10 +132,9 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* MAIN CONTENT CONTAINER */}
+      {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         
-        {/* HEADER */}
         <header className="h-[70px] bg-white border-b border-[#0D1B3E]/10 flex items-center justify-between px-8 shrink-0">
           <h1 className="text-xl font-semibold capitalize">{activeTab}</h1>
           <div className="flex items-center gap-4">
@@ -147,7 +143,6 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        {/* WORKSPACE AREA */}
         <div className="flex-1 overflow-y-auto p-8">
           
           {activeTab === 'overview' && (
@@ -242,22 +237,9 @@ export default function AdminDashboard() {
                               {product.stock} units
                             </span>
                           </td>
-                          {/* ROW ACTIONS COLUMN */}
                           <td className="p-4 text-right pr-6 space-x-2 whitespace-nowrap">
-                            <button 
-                              onClick={() => openEditModal(product)}
-                              className="text-gray-500 hover:text-blue-600 p-1 transition-colors"
-                              title="Edit Item"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteProduct(product.id, product.name)}
-                              className="text-gray-500 hover:text-red-600 p-1 transition-colors"
-                              title="Delete Item"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            <button onClick={() => openEditModal(product)} className="text-gray-500 hover:text-blue-600 p-1 transition-colors"><Edit2 size={16} /></button>
+                            <button onClick={() => handleDeleteProduct(product.id, product.name)} className="text-gray-500 hover:text-red-600 p-1 transition-colors"><Trash2 size={16} /></button>
                           </td>
                         </tr>
                       ))
@@ -271,7 +253,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* FORM MODAL (CREATES & EDITS) */}
+      {/* FORM MODAL WITH IMAGE FIELD */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-[#0D1B3E]/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -329,6 +311,12 @@ export default function AdminDashboard() {
                     <option value="new">Force New Badge</option>
                     <option value="hot">Force Hot Badge</option>
                   </select>
+                </div>
+
+                {/* IMAGE URL FIELD */}
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Product Image URL</label>
+                  <input type="text" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="https://example.com/image.jpg" />
                 </div>
               </div>
 

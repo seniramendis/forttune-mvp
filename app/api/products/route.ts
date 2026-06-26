@@ -17,7 +17,7 @@ export async function GET() {
   }
 }
 
-// 2. CREATE A NEW PRODUCT
+// 2. CREATE PRODUCT WITH IMAGE
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -32,11 +32,11 @@ export async function POST(request: Request) {
         sku: body.sku || null,
         spec: body.spec || null,
         badge: body.badge || null,
+        image: body.image || null, // <-- SAVES THE IMAGE URL
       }
     });
 
-    broadcastReload(); // Trigger instant customer site auto-reload
-
+    broadcastReload();
     return NextResponse.json(product);
   } catch (error) {
     console.error("Failed to create product:", error);
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   }
 }
 
-// 3. EDIT AN EXISTING PRODUCT
+// 3. EDIT PRODUCT WITH IMAGE
 export async function PUT(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -67,11 +67,11 @@ export async function PUT(request: Request) {
         sku: body.sku || null,
         spec: body.spec || null,
         badge: body.badge || null,
+        image: body.image || null, // <-- UPDATES THE IMAGE URL
       }
     });
 
-    broadcastReload(); // Trigger instant customer site auto-reload to show updates!
-
+    broadcastReload();
     return NextResponse.json(updatedProduct);
   } catch (error) {
     console.error("Failed to update product:", error);
@@ -79,7 +79,7 @@ export async function PUT(request: Request) {
   }
 }
 
-// 4. DELETE A PRODUCT
+// 4. DELETE PRODUCT
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -93,8 +93,7 @@ export async function DELETE(request: Request) {
       where: { id }
     });
 
-    broadcastReload(); // Trigger instant customer site auto-reload to remove deleted product!
-
+    broadcastReload();
     return NextResponse.json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {
     console.error("Failed to delete product:", error);

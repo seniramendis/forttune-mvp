@@ -49,6 +49,7 @@ model Product {
   badge       String?     // 'hot', 'new', etc.
   sku         String?     @unique // For POS Barcode scanning
   orderItems  OrderItem[]
+  image       String?  // <-- MAKE SURE THIS LINE IS PRESENT
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
