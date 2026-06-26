@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import Pusher from 'pusher-js';
 import {
   ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store,
   Laptop, Monitor, Wifi, Printer, Server, Database, Mouse,
@@ -60,27 +59,29 @@ export default function ForttuneApp() {
 
   // 2. Real-time implementation: Connect to Pusher channel and auto-reload on modifications
   useEffect(() => {
-    // Replace placeholders with your exact keys if env loading is failing
-    const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || 'your_actual_pusher_key_here', {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'mt1',
-    });
+    console.log("Connecting to local real-time update stream...");
+    
+    // Connects directly to our local route handler endpoint
+    const eventSource = new EventSource('/api/products/stream');
 
-    console.log("Pusher attempting real-time connection connection...");
+    eventSource.onmessage = (event) => {
+      try {
+        const parsed = JSON.parse(event.data);
+        if (parsed.type === 'RELOAD') {
+          console.log("Database modification detected! Reloading browser layout...");
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error("Stream parse error:", err);
+      }
+    };
 
-    const channel = pusherClient.subscribe('inventory');
-
-    channel.bind('device-added', (data: any) => {
-      console.log("Realtime event intercepted from admin:", data);
-      window.location.reload();
-    });
-
-    pusherClient.connection.bind('state_change', (states: any) => {
-      console.log("Pusher structural connection pipeline state:", states.current);
-    });
+    eventSource.onerror = () => {
+      console.log("Stream disconnected. Reconnecting automatically...");
+    };
 
     return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
+      eventSource.close();
     };
   }, []);
 

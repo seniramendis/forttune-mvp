@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { broadcastReload } from './stream/route'; // Import our local streamer
 
 export const dynamic = 'force-dynamic';
 
@@ -10,12 +11,10 @@ export async function GET() {
     });
     return NextResponse.json(products);
   } catch (error) {
-    console.error("API Error:", error);
     return NextResponse.json({ error: 'Database failure' }, { status: 500 });
   }
 }
 
-// Add this POST method to handle new product submissions
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -33,9 +32,11 @@ export async function POST(request: Request) {
       }
     });
 
+    // TRIGGER NATIVE BROADCAST SIGNAL Instead of Pusher!
+    broadcastReload();
+
     return NextResponse.json(product);
   } catch (error) {
-    console.error("Failed to create product:", error);
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
   }
 }
