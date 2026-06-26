@@ -127,7 +127,7 @@ export default function ForttuneApp() {
     // Calculate if the item is less than 7 days old
     const isRecentlyAdded = p.createdAt ? (new Date().getTime() - new Date(p.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
     
-    // Hide New badge if the product has 0 stock, otherwise check the rules
+    // Hide New badge if the product has 0 stock, otherwise evaluate rules
     const showNewBadge = p.stock > 0 && (p.badge === 'new' || isRecentlyAdded);
 
     return (
@@ -135,8 +135,20 @@ export default function ForttuneApp() {
         onClick={() => openProductDetail(p)}
         className="bg-white border-[0.5px] border-[#0D1B3E]/10 rounded-[10px] overflow-hidden cursor-pointer hover:border-[#E85D26] hover:shadow-lg transition-all flex flex-col h-full group"
       >
-        <div className="bg-[#F5F6FA] h-[110px] flex items-center justify-center relative shrink-0 group-hover:bg-slate-100 transition-colors">
-          {getCatIcon(p.category, "w-10 h-10 text-[#1A2F5E]/20")}
+        {/* PRODUCT VISUAL IMAGE / ICON FRAME */}
+        <div className="bg-[#F5F6FA] h-[110px] w-full flex items-center justify-center relative shrink-0 group-hover:bg-slate-100 transition-colors p-2">
+          {p.image ? (
+            <img 
+              src={p.image} 
+              alt={p.name} 
+              className="h-full w-full object-contain mix-blend-multiply"
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            getCatIcon(p.category, "w-10 h-10 text-[#1A2F5E]/20")
+          )}
           
           {/* BADGE PLACEMENT SYSTEM */}
           {p.stock > 0 && p.badge === 'hot' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#E85D26]">Hot</span>}
@@ -144,6 +156,7 @@ export default function ForttuneApp() {
           
           {p.stock === 0 && <span className="absolute top-[7px] right-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-red-600 bg-red-100">Out of Stock</span>}
         </div>
+        
         <div className="p-[10px] flex flex-col flex-1">
           <div className="text-[9px] font-medium text-[#E85D26] uppercase tracking-[0.5px] mb-[3px]">{p.brand}</div>
           <div className="text-[12px] font-medium text-[#0D1B3E] leading-[1.35] mb-[4px]">{p.name}</div>
@@ -178,7 +191,7 @@ export default function ForttuneApp() {
         <div className="flex gap-8 hidden sm:flex">
           {['home', 'products', 'contact'].map(p => (
             <button key={p} onClick={() => { setPage(p); window.scrollTo(0,0); }} className={`text-[13px] font-semibold capitalize transition-colors ${page === p || (page === 'product-detail' && p === 'products') ? 'text-[#E85D26]' : 'text-[#6B7A99] hover:text-[#0D1B3E]'}`}>
-              {p}
+              {page === p || (page === 'product-detail' && p === 'products') ? p : p}
             </button>
           ))}
         </div>
@@ -213,8 +226,16 @@ export default function ForttuneApp() {
             <div className="bg-white rounded-2xl border border-[#0D1B3E]/10 shadow-sm overflow-hidden flex flex-col md:flex-row">
               
               {/* Product Visual */}
-              <div className="w-full md:w-1/2 bg-[#F5F6FA] p-12 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#0D1B3E]/10 relative min-h-[300px]">
-                {getCatIcon(selectedProduct.category, "w-32 h-32 text-[#1A2F5E]/10")}
+              <div className="w-full md:w-1/2 bg-[#F5F6FA] p-12 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#0D1B3E]/10 relative min-h-[300px] p-4">
+                {selectedProduct.image ? (
+                  <img 
+                    src={selectedProduct.image} 
+                    alt={selectedProduct.name} 
+                    className="max-h-[220px] w-full object-contain mix-blend-multiply"
+                  />
+                ) : (
+                  getCatIcon(selectedProduct.category, "w-32 h-32 text-[#1A2F5E]/10")
+                )}
                 <div className="absolute top-6 left-6 flex gap-2">
                   {selectedProduct.stock > 0 && selectedProduct.badge === 'hot' && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md text-white bg-[#E85D26] shadow-sm">🔥 Trending</span>}
                   {selectedProduct.stock > 0 && (selectedProduct.badge === 'new' || (selectedProduct.createdAt && (new Date().getTime() - new Date(selectedProduct.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000)) && selectedProduct.badge !== 'hot' && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md text-white bg-[#1D9E75] shadow-sm">New Arrival</span>}
