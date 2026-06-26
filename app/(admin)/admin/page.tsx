@@ -5,10 +5,11 @@ import { LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle, Users,
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
+  // Ensure we fall back safely to an empty array if an object is returned
   const [products, setProducts] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('inventory');
+  const [apiError, setApiError] = useState<string | null>(null);
   
-  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,11 +18,23 @@ export default function AdminDashboard() {
     name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '', badge: '', image: ''
   });
 
-  const fetchInventory = () => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => setProducts(data))
-      .catch(err => console.error(err));
+  const fetchInventory = async () => {
+    try {
+      const res = await fetch('/api/products');
+      const data = await res.json();
+      
+      if (res.ok && Array.isArray(data)) {
+        setProducts(data);
+        setApiError(null);
+      } else {
+        setApiError(data.error || "Failed to parse product array from server.");
+        setProducts([]); // Clear state safely
+      }
+    } catch (err) {
+      console.error(err);
+      setApiError("Could not reach backend database stream.");
+      setProducts([]);
+    }
   };
 
   useEffect(() => {
@@ -105,7 +118,10 @@ export default function AdminDashboard() {
   ];
 
   const totalRevenue = salesData.reduce((acc, curr) => acc + curr.revenue, 0);
-  const lowStockItems = products.filter(p => p.stock < 5).length;
+  
+  // Safe Array checks prevent any filtering runtime crashes
+  const validProductList = Array.isArray(products) ? products : [];
+  const lowStockItems = validProductList.filter(p => p && typeof p.stock === 'number' && p.stock < 5).length;
 
   return (
     <div className="flex h-screen w-full bg-[#F5F6FA] font-sans text-[#0D1B3E]">
@@ -132,9 +148,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* MAIN CONTENT AREA */}
+      {/* CONTENT AREA */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        
         <header className="h-[70px] bg-white border-b border-[#0D1B3E]/10 flex items-center justify-between px-8 shrink-0">
           <h1 className="text-xl font-semibold capitalize">{activeTab}</h1>
           <div className="flex items-center gap-4">
@@ -145,6 +160,16 @@ export default function AdminDashboard() {
 
         <div className="flex-1 overflow-y-auto p-8">
           
+          {/* DISPLAY DATABASE CONNECTION WARNING IF ANY */}
+          {apiError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3 text-sm">
+              <AlertCircle size={18} />
+              <div>
+                <strong>Database Error (500):</strong> {apiError}. Make sure you ran your Prisma database migrations schema update.
+              </div>
+            </div>
+          )}
+
           {activeTab === 'overview' && (
             <div className="space-y-6 max-w-7xl">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -195,12 +220,7 @@ export default function AdminDashboard() {
             <div className="bg-white rounded-xl border border-[#0D1B3E]/10 shadow-sm overflow-hidden max-w-7xl">
               <div className="p-5 border-b border-[#0D1B3E]/10 flex justify-between items-center bg-gray-50">
                 <h3 className="font-semibold text-[15px]">Product Database</h3>
-                <button 
-                  onClick={openAddModal}
-                  className="bg-[#0D1B3E] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#1A2F5E] transition-colors"
-                >
-                  + Add Product
-                </button>
+                <button onClick={openAddModal} className="bg-[#0D1B3E] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#1A2F5E] transition-colors">+ Add Product</button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
@@ -215,27 +235,21 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {products.length === 0 ? (
+                    {validProductList.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="text-center p-8 text-[#6B7A99]">
-                          No products found.
-                        </td>
+                        <td colSpan={6} className="text-center p-8 text-[#6B7A99]">No products found.</td>
                       </tr>
                     ) : (
-                      products.map((product) => (
+                      validProductList.map((product) => product && (
                         <tr key={product.id} className="border-b last:border-0 border-[#0D1B3E]/5 hover:bg-gray-50/50">
                           <td className="p-4 pl-6 text-[#6B7A99] font-mono text-xs">{product.sku || 'N/A'}</td>
                           <td className="p-4 font-medium text-[#0D1B3E]">{product.name}</td>
                           <td className="p-4">
-                            <span className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full text-xs font-medium">
-                              {product.category}
-                            </span>
+                            <span className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full text-xs font-medium">{product.category}</span>
                           </td>
-                          <td className="p-4 text-[#0D1B3E] font-medium">Rs {product.price.toLocaleString('en-LK')}</td>
+                          <td className="p-4 text-[#0D1B3E] font-medium">Rs {(product.price || 0).toLocaleString('en-LK')}</td>
                           <td className="p-4">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${product.stock < 5 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                              {product.stock} units
-                            </span>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${(product.stock || 0) < 5 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{product.stock || 0} units</span>
                           </td>
                           <td className="p-4 text-right pr-6 space-x-2 whitespace-nowrap">
                             <button onClick={() => openEditModal(product)} className="text-gray-500 hover:text-blue-600 p-1 transition-colors"><Edit2 size={16} /></button>
@@ -253,14 +267,12 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* FORM MODAL WITH IMAGE FIELD */}
+      {/* MODAL SYSTEM */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-[#0D1B3E]/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-[#0D1B3E]/10 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-[#0D1B3E]">
-                {editingProduct ? 'Edit Product Parameters' : 'Add New Product'}
-              </h2>
+              <h2 className="text-lg font-semibold text-[#0D1B3E]">{editingProduct ? 'Edit Product Parameters' : 'Add New Product'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-[#6B7A99] hover:text-[#E85D26] transition-colors"><X size={20}/></button>
             </div>
             
@@ -268,65 +280,48 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-2 gap-5">
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Product Name</label>
-                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="e.g. HP Elitebook 8 G1i" />
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" />
                 </div>
-                
                 <div>
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Brand</label>
-                  <input required type="text" value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="e.g. HP" />
+                  <input required type="text" value={formData.brand} onChange={e => setFormData({...formData, brand: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" />
                 </div>
-
                 <div>
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Category</label>
                   <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]">
-                    <option>Laptops</option><option>Desktops</option><option>Monitors</option>
-                    <option>Networking</option><option>Printers</option><option>Storage</option><option>Accessories</option>
+                    <option>Laptops</option><option>Desktops</option><option>Monitors</option><option>Networking</option><option>Printers</option><option>Storage</option><option>Accessories</option>
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Price (LKR)</label>
-                  <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="0.00" />
+                  <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" />
                 </div>
-
                 <div>
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Stock Quantity</label>
-                  <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="0" />
+                  <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" />
                 </div>
-
                 <div>
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">SKU (Barcode)</label>
-                  <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="e.g. 849302" />
+                  <input type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" />
                 </div>
-
                 <div>
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Short Specs</label>
-                  <input type="text" value={formData.spec} onChange={e => setFormData({...formData, spec: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="e.g. Ultra 7 14th Gen" />
+                  <input type="text" value={formData.spec} onChange={e => setFormData({...formData, spec: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" />
                 </div>
-
                 <div>
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Badge Condition</label>
                   <select value={formData.badge} onChange={e => setFormData({...formData, badge: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]">
-                    <option value="">None</option>
-                    <option value="new">Force New Badge</option>
-                    <option value="hot">Force Hot Badge</option>
+                    <option value="">None</option><option value="new">Force New Badge</option><option value="hot">Force Hot Badge</option>
                   </select>
                 </div>
-
-                {/* IMAGE URL FIELD */}
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Product Image URL</label>
                   <input type="text" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="https://example.com/image.jpg" />
                 </div>
               </div>
-
               <div className="mt-8 flex justify-end gap-3">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-sm font-medium text-[#6B7A99] hover:bg-gray-100 rounded-lg transition-colors">
-                  Cancel
-                </button>
-                <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 text-sm font-medium text-white bg-[#E85D26] hover:bg-[#F47A4A] rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2">
-                  {isSubmitting ? 'Saving...' : 'Save Product'}
-                </button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-sm font-medium text-[#6B7A99] hover:bg-gray-100 rounded-lg">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 text-sm font-medium text-white bg-[#E85D26] hover:bg-[#F47A4A] rounded-lg disabled:opacity-50">{isSubmitting ? 'Saving...' : 'Save Product'}</button>
               </div>
             </form>
           </div>
