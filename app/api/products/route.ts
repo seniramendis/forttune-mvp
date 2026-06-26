@@ -96,24 +96,25 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
     }
 
-    // Try a soft delete via raw SQL query to verify if column is available
+    // Use Prisma's safe parameterized block to native-escape the string ID safely
     try {
-      await prisma.$executeRawUnsafe(
-        'UPDATE "Product" SET "deletedAt" = NOW() WHERE id = $1',
-        id
-      );
+      await prisma.$executeRaw`
+        UPDATE "Product" 
+        SET "deletedAt" = NOW() 
+        WHERE id = ${id}
+      `;
     } catch {
-      // If the database fails because the column doesn't exist, execute a traditional clean delete
-      await prisma.$executeRawUnsafe(
-        'DELETE FROM "Product" WHERE id = $1',
-        id
-      );
+      // Hard fallback drop query if your schema didn't register the column locally yet
+      await prisma.$executeRaw`
+        DELETE FROM "Product" 
+        WHERE id = ${id}
+      `;
     }
 
     broadcastReload();
     return NextResponse.json({ success: true, message: 'Product processed successfully' });
   } catch (error) {
     console.error("Failed to delete product:", error);
-    return NextResponse.json({ error: 'Failed to complete transaction' }, { status: 500 });
+    return NextResponse.json({ error: 'Database transaction failed' }, { status: 500 });
   }
 }
