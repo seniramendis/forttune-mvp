@@ -22,9 +22,9 @@ enum OrderStatus {
 }
 
 enum PaymentMethod {
-  CASH       // Used in POS
-  CARD       // Used in POS & Web
-  ONLINE     // Used in Web
+  CASH // Used in POS
+  CARD // Used in POS & Web
+  ONLINE // Used in Web
 }
 
 model User {
@@ -32,31 +32,32 @@ model User {
   email     String?  @unique
   name      String?
   role      Role     @default(CUSTOMER)
-  password  String?  // For credential auth MVP
+  password  String? // For credential auth MVP
   orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Product {
-  id        String    @id @default(uuid())
-  name      String
-  brand     String
-  category  String
-  price     Float
-  stock     Int
-  sku       String?
-  spec      String?
-  badge     String?
-  image     String?
-  deletedAt DateTime? // <-- ADD THIS LINE FOR SOFT DELETES
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id         String      @id @default(uuid())
+  name       String
+  brand      String
+  category   String
+  price      Float
+  stock      Int
+  sku        String?
+  spec       String?
+  badge      String?
+  image      String?
+  orderItems OrderItem[]
+  deletedAt  DateTime? // <-- ADD THIS LINE FOR SOFT DELETES
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 }
 
 model Order {
   id            String        @id @default(cuid())
-  userId        String?       // Nullable if walk-in POS customer
+  userId        String? // Nullable if walk-in POS customer
   user          User?         @relation(fields: [userId], references: [id])
   status        OrderStatus   @default(PENDING)
   total         Float
@@ -74,5 +75,5 @@ model OrderItem {
   productId String
   product   Product @relation(fields: [productId], references: [id])
   quantity  Int
-  price     Float   // Price at the time of purchase
+  price     Float // Price at the time of purchase
 }
