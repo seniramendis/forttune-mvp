@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle, Users, X, Edit2, Trash2 } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle, Users, X, Edit2, Trash2, Upload } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
-  // Ensure we fall back safely to an empty array if an object is returned
   const [products, setProducts] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('inventory');
   const [apiError, setApiError] = useState<string | null>(null);
@@ -28,7 +27,7 @@ export default function AdminDashboard() {
         setApiError(null);
       } else {
         setApiError(data.error || "Failed to parse product array from server.");
-        setProducts([]); // Clear state safely
+        setProducts([]);
       }
     } catch (err) {
       console.error(err);
@@ -40,6 +39,18 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchInventory();
   }, []);
+
+  // Converts a device file into a Base64 string for direct database storage
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({ ...prev, image: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const openAddModal = () => {
     setEditingProduct(null);
@@ -118,8 +129,6 @@ export default function AdminDashboard() {
   ];
 
   const totalRevenue = salesData.reduce((acc, curr) => acc + curr.revenue, 0);
-  
-  // Safe Array checks prevent any filtering runtime crashes
   const validProductList = Array.isArray(products) ? products : [];
   const lowStockItems = validProductList.filter(p => p && typeof p.stock === 'number' && p.stock < 5).length;
 
@@ -160,13 +169,10 @@ export default function AdminDashboard() {
 
         <div className="flex-1 overflow-y-auto p-8">
           
-          {/* DISPLAY DATABASE CONNECTION WARNING IF ANY */}
           {apiError && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3 text-sm">
               <AlertCircle size={18} />
-              <div>
-                <strong>Database Error (500):</strong> {apiError}. Make sure you ran your Prisma database migrations schema update.
-              </div>
+              <div><strong>Database Error:</strong> {apiError}</div>
             </div>
           )}
 
@@ -181,7 +187,6 @@ export default function AdminDashboard() {
                   <div className="text-[#6B7A99] text-sm font-medium mb-1">7-Day Revenue</div>
                   <div className="text-2xl font-bold text-[#0D1B3E]">Rs {totalRevenue.toLocaleString('en-LK')}</div>
                 </div>
-                
                 <div className="bg-white rounded-xl p-6 border border-[#0D1B3E]/10 shadow-sm">
                   <div className="flex justify-between items-start mb-4">
                     <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><ShoppingCart size={20} /></div>
@@ -189,7 +194,6 @@ export default function AdminDashboard() {
                   <div className="text-[#6B7A99] text-sm font-medium mb-1">Total Orders (Week)</div>
                   <div className="text-2xl font-bold text-[#0D1B3E]">142</div>
                 </div>
-
                 <div className="bg-white rounded-xl p-6 border border-[#0D1B3E]/10 shadow-sm">
                   <div className="flex justify-between items-start mb-4">
                     <div className="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center"><AlertCircle size={20} /></div>
@@ -267,7 +271,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* MODAL SYSTEM */}
+      {/* FORM MODAL WITH DEVICE FILE UPLOADER */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-[#0D1B3E]/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -314,10 +318,24 @@ export default function AdminDashboard() {
                     <option value="">None</option><option value="new">Force New Badge</option><option value="hot">Force Hot Badge</option>
                   </select>
                 </div>
+
+                {/* DEVICE FILE UPLOADER COMPONENT */}
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Product Image URL</label>
-                  <input type="text" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]" placeholder="https://example.com/image.jpg" />
+                  <label className="block text-xs font-medium text-[#6B7A99] uppercase tracking-wide mb-1.5">Upload Product Image</label>
+                  <div className="flex items-center gap-4 border border-dashed border-[#0D1B3E]/30 rounded-lg p-4 bg-[#F5F6FA]">
+                    <label className="cursor-pointer bg-[#0D1B3E] text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-[#1A2F5E] flex items-center gap-2 transition-colors">
+                      <Upload size={14} /> Choose File
+                      <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    </label>
+                    <div className="text-xs text-[#6B7A99] flex-1 truncate">
+                      {formData.image ? "Image attached from device successfully!" : "No file selected"}
+                    </div>
+                    {formData.image && (
+                      <img src={formData.image} alt="Preview" className="w-12 h-12 rounded object-cover border border-[#0D1B3E]/10 bg-white" />
+                    )}
+                  </div>
                 </div>
+
               </div>
               <div className="mt-8 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-sm font-medium text-[#6B7A99] hover:bg-gray-100 rounded-lg">Cancel</button>
