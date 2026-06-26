@@ -113,6 +113,8 @@ export default function ForttuneApp() {
   };
 
   const filteredProducts = inventory.filter(p => {
+    if (!p || p.badge === 'archived_hidden') return false; // Filter out soft-deleted products dynamically
+    
     const catOk = activeCat === 'All' || p.category === activeCat;
     const sOk = !search || p.name.toLowerCase().includes(search.toLowerCase()) || 
                 (p.brand && p.brand.toLowerCase().includes(search.toLowerCase())) || 
@@ -191,7 +193,7 @@ export default function ForttuneApp() {
         <div className="flex gap-8 hidden sm:flex">
           {['home', 'products', 'contact'].map(p => (
             <button key={p} onClick={() => { setPage(p); window.scrollTo(0,0); }} className={`text-[13px] font-semibold capitalize transition-colors ${page === p || (page === 'product-detail' && p === 'products') ? 'text-[#E85D26]' : 'text-[#6B7A99] hover:text-[#0D1B3E]'}`}>
-              {page === p || (page === 'product-detail' && p === 'products') ? p : p}
+              {p}
             </button>
           ))}
         </div>
@@ -355,7 +357,7 @@ export default function ForttuneApp() {
                 <div className="text-[#6B7A99] text-[13px] py-10 text-center font-medium">Connecting to live database...</div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {inventory.slice(0,6).map(p => <ProductCard key={p.id} p={p} />)}
+                  {inventory.filter(p => p && p.badge !== 'archived_hidden').slice(0,6).map(p => <ProductCard key={p.id} p={p} />)}
                 </div>
               )}
             </div>
