@@ -52,7 +52,7 @@ export default function ForttuneApp() {
         console.error("Failed to load inventory", err);
         setInventory([]);
       } finally {
-        isLoading(false);
+        setIsLoading(false); // <--- CHANGE THIS FROM isLoading(false) TO setIsLoading(false)
       }
     };
     fetchProducts();
