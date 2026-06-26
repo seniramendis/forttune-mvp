@@ -39,19 +39,19 @@ model User {
 }
 
 model Product {
-  id          String      @id @default(cuid())
-  name        String
-  brand       String
-  category    String      // e.g., Laptops, Monitors, Networking
-  price       Float
-  stock       Int         @default(0)
-  spec        String?     // Short specs
-  badge       String?     // 'hot', 'new', etc.
-  sku         String?     @unique // For POS Barcode scanning
-  orderItems  OrderItem[]
-  image       String?  // <-- MAKE SURE THIS LINE IS PRESENT
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id        String    @id @default(uuid())
+  name      String
+  brand     String
+  category  String
+  price     Float
+  stock     Int
+  sku       String?
+  spec      String?
+  badge     String?
+  image     String?
+  deletedAt DateTime? // <-- ADD THIS LINE FOR SOFT DELETES
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Order {

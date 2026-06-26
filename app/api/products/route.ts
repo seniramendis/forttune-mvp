@@ -4,10 +4,13 @@ import { broadcastReload } from './stream/route';
 
 export const dynamic = 'force-dynamic';
 
-// 1. GET ALL PRODUCTS
+// 1. GET ALL ACTIVE PRODUCTS ONLY
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
+      where: {
+        deletedAt: null // Only fetch items that aren't soft-deleted
+      },
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(products);
@@ -17,7 +20,7 @@ export async function GET() {
   }
 }
 
-// 2. CREATE PRODUCT WITH IMAGE
+// 2. CREATE PRODUCT
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -32,7 +35,7 @@ export async function POST(request: Request) {
         sku: body.sku || null,
         spec: body.spec || null,
         badge: body.badge || null,
-        image: body.image || null, // <-- SAVES THE IMAGE URL
+        image: body.image || null,
       }
     });
 
@@ -44,7 +47,7 @@ export async function POST(request: Request) {
   }
 }
 
-// 3. EDIT PRODUCT WITH IMAGE
+// 3. EDIT PRODUCT
 export async function PUT(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -67,7 +70,7 @@ export async function PUT(request: Request) {
         sku: body.sku || null,
         spec: body.spec || null,
         badge: body.badge || null,
-        image: body.image || null, // <-- UPDATES THE IMAGE URL
+        image: body.image || null,
       }
     });
 
@@ -79,7 +82,7 @@ export async function PUT(request: Request) {
   }
 }
 
-// 4. DELETE PRODUCT
+// 4. SAFE SOFT-DELETE HANDLING
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -89,12 +92,14 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
     }
 
-    await prisma.product.delete({
-      where: { id }
+    // Instead of deletion, update the deletedAt field to bypass relation constraints safely
+    await prisma.product.update({
+      where: { id },
+      data: { deletedAt: new Date() }
     });
 
-    broadcastReload();
-    return NextResponse.json({ success: true, message: 'Product deleted successfully' });
+    broadcastReload(); // Live update stream triggers instantly!
+    return NextResponse.json({ success: true, message: 'Product archived successfully' });
   } catch (error) {
     console.error("Failed to delete product:", error);
     return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
