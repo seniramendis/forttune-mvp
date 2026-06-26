@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import {
-  ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store,
-  Laptop, Monitor, Wifi, Printer, Server, Database, Mouse,
+import { 
+  ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, 
+  Laptop, Monitor, Wifi, Printer, Server, Database, Mouse, 
   Search, MapPin, Phone, MessageCircle, Mail, Clock, Package, X, Plus, ChevronLeft, Minus, Trash2, CheckCircle
 } from 'lucide-react';
 
@@ -28,7 +28,7 @@ const formatLKR = (num: number) => `Rs ${num.toLocaleString('en-LK')}`;
 export default function ForttuneApp() {
   const [inventory, setInventory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  
   const [page, setPage] = useState('home');
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [pdpQty, setPdpQty] = useState(1);
@@ -39,7 +39,7 @@ export default function ForttuneApp() {
   const [search, setSearch] = useState('');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // 1. Fetch initial records from database
+  // 1. Fetch initial records
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -51,33 +51,25 @@ export default function ForttuneApp() {
         console.error("Failed to load inventory", err);
         setInventory([]);
       } finally {
-        setIsLoading(false); // Type fix applied here
+        setIsLoading(false);
       }
     };
     fetchProducts();
   }, []);
 
-  // 2. Real-time implementation: Connect to Pusher channel and auto-reload on modifications
+  // 2. Real-time implementation: Native EventStream auto-reload
   useEffect(() => {
-    console.log("Connecting to local real-time update stream...");
-    
-    // Connects directly to our local route handler endpoint
     const eventSource = new EventSource('/api/products/stream');
 
     eventSource.onmessage = (event) => {
       try {
         const parsed = JSON.parse(event.data);
         if (parsed.type === 'RELOAD') {
-          console.log("Database modification detected! Reloading browser layout...");
           window.location.reload();
         }
       } catch (err) {
         console.error("Stream parse error:", err);
       }
-    };
-
-    eventSource.onerror = () => {
-      console.log("Stream disconnected. Reconnecting automatically...");
     };
 
     return () => {
@@ -122,50 +114,61 @@ export default function ForttuneApp() {
 
   const filteredProducts = inventory.filter(p => {
     const catOk = activeCat === 'All' || p.category === activeCat;
-    const sOk = !search || p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.brand && p.brand.toLowerCase().includes(search.toLowerCase())) ||
-      (p.spec && p.spec.toLowerCase().includes(search.toLowerCase()));
+    const sOk = !search || p.name.toLowerCase().includes(search.toLowerCase()) || 
+                (p.brand && p.brand.toLowerCase().includes(search.toLowerCase())) || 
+                (p.spec && p.spec.toLowerCase().includes(search.toLowerCase()));
     return catOk && sOk;
   });
 
   const cartTotal = cart.reduce((s, x) => s + (x.price * x.qty), 0);
   const cartCount = cart.reduce((s, x) => s + x.qty, 0);
 
-  const ProductCard = ({ p }: { p: any }) => (
-    <div
-      onClick={() => openProductDetail(p)}
-      className="bg-white border-[0.5px] border-[#0D1B3E]/10 rounded-[10px] overflow-hidden cursor-pointer hover:border-[#E85D26] hover:shadow-lg transition-all flex flex-col h-full group"
-    >
-      <div className="bg-[#F5F6FA] h-[110px] flex items-center justify-center relative shrink-0 group-hover:bg-slate-100 transition-colors">
-        {getCatIcon(p.category, "w-10 h-10 text-[#1A2F5E]/20")}
-        {p.badge === 'hot' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#E85D26]">Hot</span>}
-        {p.badge === 'new' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#1D9E75]">New</span>}
-        {p.stock === 0 && <span className="absolute top-[7px] right-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-red-600 bg-red-100">Out of Stock</span>}
-      </div>
-      <div className="p-[10px] flex flex-col flex-1">
-        <div className="text-[9px] font-medium text-[#E85D26] uppercase tracking-[0.5px] mb-[3px]">{p.brand}</div>
-        <div className="text-[12px] font-medium text-[#0D1B3E] leading-[1.35] mb-[4px]">{p.name}</div>
-        <div className="text-[10px] text-[#6B7A99] mb-[8px] leading-[1.4] flex-1">{p.spec}</div>
-        <div className="flex items-center justify-between mt-auto">
-          <div>
-            <div className="text-[13px] font-medium text-[#0D1B3E]">{formatLKR(p.price)}</div>
-            <div className="text-[9px] text-[#6B7A99] font-normal">LKR incl. taxes</div>
+  const ProductCard = ({ p }: { p: any }) => {
+    // Calculate if the item is less than 7 days old
+    const isRecentlyAdded = p.createdAt ? (new Date().getTime() - new Date(p.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+    
+    // Show green badge if manually tagged as 'new' OR if created within 1 week
+    const showNewBadge = p.badge === 'new' || isRecentlyAdded;
+
+    return (
+      <div 
+        onClick={() => openProductDetail(p)}
+        className="bg-white border-[0.5px] border-[#0D1B3E]/10 rounded-[10px] overflow-hidden cursor-pointer hover:border-[#E85D26] hover:shadow-lg transition-all flex flex-col h-full group"
+      >
+        <div className="bg-[#F5F6FA] h-[110px] flex items-center justify-center relative shrink-0 group-hover:bg-slate-100 transition-colors">
+          {getCatIcon(p.category, "w-10 h-10 text-[#1A2F5E]/20")}
+          
+          {/* BADGE PLACEMENT SYSTEM */}
+          {p.badge === 'hot' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#E85D26]">Hot</span>}
+          {showNewBadge && p.badge !== 'hot' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#1D9E75]">New</span>}
+          
+          {p.stock === 0 && <span className="absolute top-[7px] right-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-red-600 bg-red-100">Out of Stock</span>}
+        </div>
+        <div className="p-[10px] flex flex-col flex-1">
+          <div className="text-[9px] font-medium text-[#E85D26] uppercase tracking-[0.5px] mb-[3px]">{p.brand}</div>
+          <div className="text-[12px] font-medium text-[#0D1B3E] leading-[1.35] mb-[4px]">{p.name}</div>
+          <div className="text-[10px] text-[#6B7A99] mb-[8px] leading-[1.4] flex-1">{p.spec}</div>
+          <div className="flex items-center justify-between mt-auto">
+            <div>
+              <div className="text-[13px] font-medium text-[#0D1B3E]">{formatLKR(p.price)}</div>
+              <div className="text-[9px] text-[#6B7A99] font-normal">LKR incl. taxes</div>
+            </div>
+            <button 
+              disabled={p.stock === 0}
+              onClick={(e) => { e.stopPropagation(); addToCart(p, 1); }} 
+              className="bg-[#0D1B3E] disabled:opacity-50 text-white border-none w-[26px] h-[26px] rounded-[6px] flex items-center justify-center shrink-0 hover:bg-[#E85D26] transition-colors"
+            >
+              <Plus size={14} />
+            </button>
           </div>
-          <button
-            disabled={p.stock === 0}
-            onClick={(e) => { e.stopPropagation(); addToCart(p, 1); }}
-            className="bg-[#0D1B3E] disabled:opacity-50 text-white border-none w-[26px] h-[26px] rounded-[6px] flex items-center justify-center shrink-0 hover:bg-[#E85D26] transition-colors"
-          >
-            <Plus size={14} />
-          </button>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="bg-[#F5F6FA] font-sans text-[14px] text-[#0D1B3E] min-h-screen relative overflow-hidden">
-
+      
       {/* NAVBAR */}
       <nav className="bg-white border-b-[0.5px] border-[#0D1B3E]/10 h-[60px] flex items-center justify-between px-5 md:px-10 sticky top-0 z-40 shadow-sm">
         <div className="flex items-center cursor-pointer" onClick={() => setPage('home')}>
@@ -174,7 +177,7 @@ export default function ForttuneApp() {
         </div>
         <div className="flex gap-8 hidden sm:flex">
           {['home', 'products', 'contact'].map(p => (
-            <button key={p} onClick={() => { setPage(p); window.scrollTo(0, 0); }} className={`text-[13px] font-semibold capitalize transition-colors ${page === p || (page === 'product-detail' && p === 'products') ? 'text-[#E85D26]' : 'text-[#6B7A99] hover:text-[#0D1B3E]'}`}>
+            <button key={p} onClick={() => { setPage(p); window.scrollTo(0,0); }} className={`text-[13px] font-semibold capitalize transition-colors ${page === p || (page === 'product-detail' && p === 'products') ? 'text-[#E85D26]' : 'text-[#6B7A99] hover:text-[#0D1B3E]'}`}>
               {p}
             </button>
           ))}
@@ -188,33 +191,33 @@ export default function ForttuneApp() {
       {/* MOBILE NAV */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#0D1B3E]/10 flex justify-around p-3 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         {['home', 'products', 'contact'].map(p => (
-          <button key={p} onClick={() => { setPage(p); window.scrollTo(0, 0); }} className={`text-[11px] font-medium capitalize flex flex-col items-center gap-1 ${page === p || (page === 'product-detail' && p === 'products') ? 'text-[#E85D26]' : 'text-[#6B7A99]'}`}>
-            {p === 'home' ? <Store size={18} /> : p === 'products' ? <Package size={18} /> : <Phone size={18} />}
+          <button key={p} onClick={() => { setPage(p); window.scrollTo(0,0); }} className={`text-[11px] font-medium capitalize flex flex-col items-center gap-1 ${page === p || (page === 'product-detail' && p === 'products') ? 'text-[#E85D26]' : 'text-[#6B7A99]'}`}>
+             {p === 'home' ? <Store size={18}/> : p === 'products' ? <Package size={18}/> : <Phone size={18}/>}
             {p}
           </button>
         ))}
       </div>
 
       <div className="pb-20 sm:pb-10">
-
+        
         {/* --- PRODUCT DETAIL PAGE (PDP) --- */}
         {page === 'product-detail' && selectedProduct && (
           <div className="max-w-5xl mx-auto px-5 pt-8 animate-in fade-in duration-300">
-            <button
-              onClick={() => setPage('products')}
+            <button 
+              onClick={() => setPage('products')} 
               className="text-[#6B7A99] hover:text-[#E85D26] flex items-center gap-2 text-sm font-medium mb-6 transition-colors"
             >
               <ChevronLeft size={16} /> Back to Products
             </button>
 
             <div className="bg-white rounded-2xl border border-[#0D1B3E]/10 shadow-sm overflow-hidden flex flex-col md:flex-row">
-
+              
               {/* Product Visual */}
               <div className="w-full md:w-1/2 bg-[#F5F6FA] p-12 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-[#0D1B3E]/10 relative min-h-[300px]">
                 {getCatIcon(selectedProduct.category, "w-32 h-32 text-[#1A2F5E]/10")}
                 <div className="absolute top-6 left-6 flex gap-2">
                   {selectedProduct.badge === 'hot' && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md text-white bg-[#E85D26] shadow-sm">🔥 Trending</span>}
-                  {selectedProduct.badge === 'new' && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md text-white bg-[#1D9E75] shadow-sm">New Arrival</span>}
+                  {(selectedProduct.badge === 'new' || (selectedProduct.createdAt && (new Date().getTime() - new Date(selectedProduct.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000)) && selectedProduct.badge !== 'hot' && <span className="text-[11px] font-semibold px-2.5 py-1 rounded-md text-white bg-[#1D9E75] shadow-sm">New Arrival</span>}
                 </div>
               </div>
 
@@ -222,7 +225,7 @@ export default function ForttuneApp() {
               <div className="w-full md:w-1/2 p-8 lg:p-12 flex flex-col">
                 <div className="text-[11px] font-bold text-[#E85D26] uppercase tracking-wider mb-2">{selectedProduct.brand}</div>
                 <h1 className="text-2xl lg:text-3xl font-bold text-[#0D1B3E] leading-tight mb-4">{selectedProduct.name}</h1>
-
+                
                 <div className="flex items-center gap-4 mb-6 pb-6 border-b border-[#0D1B3E]/10">
                   <div className="text-3xl font-bold text-[#0D1B3E]">{formatLKR(selectedProduct.price)}</div>
                   <div className="text-xs text-[#6B7A99] bg-slate-100 px-3 py-1.5 rounded-md">Vat Included</div>
@@ -259,18 +262,18 @@ export default function ForttuneApp() {
                       <span className="font-semibold text-[15px]">{pdpQty}</span>
                       <button onClick={() => setPdpQty(Math.min(selectedProduct.stock, pdpQty + 1))} className="text-[#6B7A99] hover:text-[#E85D26]"><Plus size={16} /></button>
                     </div>
-                    <button
+                    <button 
                       disabled={selectedProduct.stock === 0}
-                      onClick={() => addToCart(selectedProduct, pdpQty)}
+                      onClick={() => addToCart(selectedProduct, pdpQty)} 
                       className="flex-1 bg-[#E85D26] disabled:opacity-50 disabled:hover:bg-[#E85D26] text-white rounded-xl font-semibold text-sm hover:bg-[#F47A4A] transition-colors shadow-md shadow-[#E85D26]/20 flex items-center justify-center gap-2"
                     >
                       <ShoppingCart size={18} /> {selectedProduct.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
                     </button>
                   </div>
-
-                  <a
-                    href={`https://wa.me/94725516516?text=Hi, I would like to inquire about the ${selectedProduct.name} (SKU: ${selectedProduct.sku}). Is it available for bulk purchase?`}
-                    target="_blank"
+                  
+                  <a 
+                    href={`https://wa.me/94725516516?text=Hi, I would like to inquire about the ${selectedProduct.name} (SKU: ${selectedProduct.sku}). Is it available for bulk purchase?`} 
+                    target="_blank" 
                     rel="noreferrer"
                     className="w-full flex items-center justify-center gap-2 border border-[#0D1B3E]/20 text-[#0D1B3E] font-medium text-sm h-[48px] rounded-xl hover:bg-slate-50 transition-colors"
                   >
@@ -292,7 +295,7 @@ export default function ForttuneApp() {
               <div className="absolute -right-[100px] -top-[100px] w-[400px] h-[400px] rounded-full bg-[#E85D26]/5 pointer-events-none"></div>
               <div className="max-w-7xl mx-auto">
                 <div className="inline-block bg-[#E85D26]/10 text-[#E85D26] text-[11px] font-bold tracking-[1px] uppercase px-[12px] py-[4px] rounded-full mb-[16px]">Sri Lanka's IT Hardware Distributor</div>
-                <h1 className="text-[#0D1B3E] text-[32px] md:text-[48px] font-extrabold leading-[1.2] max-w-[600px] mb-[16px]">Premium tech,<br />delivered to your <span className="text-[#E85D26]">door.</span></h1>
+                <h1 className="text-[#0D1B3E] text-[32px] md:text-[48px] font-extrabold leading-[1.2] max-w-[600px] mb-[16px]">Premium tech,<br/>delivered to your <span className="text-[#E85D26]">door.</span></h1>
                 <p className="text-[#6B7A99] text-[15px] max-w-[450px] leading-[1.6] mb-[30px]">Laptops, servers, networking and peripherals from 15+ global brands. Trusted by 500+ channel partners across the island.</p>
                 <div className="flex gap-[12px] flex-wrap relative z-10">
                   <button onClick={() => setPage('products')} className="bg-[#0D1B3E] text-white border-none px-[24px] py-[12px] rounded-lg text-[14px] font-semibold cursor-pointer hover:bg-[#1A2F5E] transition-colors shadow-lg">Browse Inventory</button>
@@ -302,10 +305,10 @@ export default function ForttuneApp() {
             </div>
 
             <div className="bg-white border-b-[0.5px] border-[#0D1B3E]/10 py-4 px-5 md:px-10 flex gap-8 overflow-x-auto hide-scrollbar max-w-7xl mx-auto justify-between">
-              <div className="flex items-center gap-3 whitespace-nowrap"><Truck size={20} className="text-[#E85D26]" /><span className="text-[13px] text-[#0D1B3E] font-semibold">Island-wide delivery</span></div>
-              <div className="flex items-center gap-3 whitespace-nowrap"><Award size={20} className="text-[#E85D26]" /><span className="text-[13px] text-[#0D1B3E] font-semibold">Official Warranty</span></div>
-              <div className="flex items-center gap-3 whitespace-nowrap"><HeadphonesIcon size={20} className="text-[#E85D26]" /><span className="text-[13px] text-[#0D1B3E] font-semibold">B2B Support</span></div>
-              <div className="flex items-center gap-3 whitespace-nowrap"><Store size={20} className="text-[#E85D26]" /><span className="text-[13px] text-[#0D1B3E] font-semibold">Mt. Lavinia Pickup</span></div>
+              <div className="flex items-center gap-3 whitespace-nowrap"><Truck size={20} className="text-[#E85D26]"/><span className="text-[13px] text-[#0D1B3E] font-semibold">Island-wide delivery</span></div>
+              <div className="flex items-center gap-3 whitespace-nowrap"><Award size={20} className="text-[#E85D26]"/><span className="text-[13px] text-[#0D1B3E] font-semibold">Official Warranty</span></div>
+              <div className="flex items-center gap-3 whitespace-nowrap"><HeadphonesIcon size={20} className="text-[#E85D26]"/><span className="text-[13px] text-[#0D1B3E] font-semibold">B2B Support</span></div>
+              <div className="flex items-center gap-3 whitespace-nowrap"><Store size={20} className="text-[#E85D26]"/><span className="text-[13px] text-[#0D1B3E] font-semibold">Mt. Lavinia Pickup</span></div>
             </div>
 
             {/* CATEGORIES SECTION */}
@@ -314,7 +317,7 @@ export default function ForttuneApp() {
                 <h2 className="text-xl font-bold text-[#0D1B3E] m-0">Shop by Category</h2>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-10">
-                {CATEGORIES.filter(c => c !== 'All').map(cat => (
+                {CATEGORIES.filter(c=>c!=='All').map(cat => (
                   <div key={cat} onClick={() => handleCategoryClick(cat)} className="bg-white border border-[#0D1B3E]/10 rounded-xl py-4 px-2 text-center cursor-pointer hover:border-[#E85D26] hover:shadow-md transition-all flex flex-col items-center">
                     {getCatIcon(cat, "text-[#1A2F5E]/60 mb-2 w-6 h-6")}
                     <span className="text-xs font-semibold text-[#0D1B3E]">{cat}</span>
@@ -326,12 +329,12 @@ export default function ForttuneApp() {
                 <h2 className="text-xl font-bold text-[#0D1B3E] m-0">Latest Arrivals</h2>
                 <span onClick={() => setPage('products')} className="text-sm font-semibold text-[#E85D26] cursor-pointer hover:underline">View Entire Catalog →</span>
               </div>
-
+              
               {isLoading ? (
                 <div className="text-[#6B7A99] text-[13px] py-10 text-center font-medium">Connecting to live database...</div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {inventory.slice(0, 6).map(p => <ProductCard key={p.id} p={p} />)}
+                  {inventory.slice(0,6).map(p => <ProductCard key={p.id} p={p} />)}
                 </div>
               )}
             </div>
@@ -345,20 +348,20 @@ export default function ForttuneApp() {
               <h1 className="text-2xl font-bold text-[#0D1B3E]">Our Inventory</h1>
               <div className="flex items-center gap-2 bg-white border border-[#0D1B3E]/10 rounded-lg py-2.5 px-4 w-full md:w-[320px] shadow-sm">
                 <Search size={18} className="text-[#6B7A99]" />
-                <input
-                  type="text"
-                  placeholder="Search by name, brand, or SKU..."
+                <input 
+                  type="text" 
+                  placeholder="Search by name, brand, or SKU..." 
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="border-none outline-none text-sm bg-transparent w-full text-[#0D1B3E] placeholder:text-[#6B7A99]"
                 />
               </div>
             </div>
-
+            
             <div className="flex gap-2 flex-wrap mb-8">
               {CATEGORIES.map(cat => (
-                <div
-                  key={cat}
+                <div 
+                  key={cat} 
                   onClick={() => setActiveCat(cat)}
                   className={`border text-xs font-medium px-4 py-2 rounded-full cursor-pointer transition-colors shadow-sm ${activeCat === cat ? 'bg-[#0D1B3E] text-white border-[#0D1B3E]' : 'bg-white text-[#6B7A99] border-[#0D1B3E]/10 hover:border-[#E85D26]'}`}
                 >
@@ -366,7 +369,7 @@ export default function ForttuneApp() {
                 </div>
               ))}
             </div>
-
+            
             {isLoading ? (
               <div className="text-[#6B7A99] text-[13px] py-10 text-center font-medium">Loading catalog...</div>
             ) : filteredProducts.length > 0 ? (
@@ -390,22 +393,22 @@ export default function ForttuneApp() {
               <h1 className="text-3xl font-bold text-[#0D1B3E] mb-3">Partner with Forttune</h1>
               <p className="text-[#6B7A99] max-w-2xl mx-auto">Whether you're looking to bulk order for your enterprise or need support for a recent purchase, our team in Mount Lavinia is ready to assist.</p>
             </div>
-
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               <div className="bg-white border border-[#0D1B3E]/10 rounded-2xl p-8 shadow-sm">
-                <h3 className="text-lg font-bold text-[#0D1B3E] mb-6 flex items-center gap-2"><MapPin className="text-[#E85D26]" /> Headquarters</h3>
-
+                <h3 className="text-lg font-bold text-[#0D1B3E] mb-6 flex items-center gap-2"><MapPin className="text-[#E85D26]"/> Headquarters</h3>
+                
                 <div className="space-y-6">
                   <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-[#E85D26]/10 flex items-center justify-center shrink-0"><MapPin size={18} className="text-[#E85D26]" /></div>
-                    <div><div className="text-xs font-semibold text-[#6B7A99] uppercase tracking-wider mb-1">Address</div><div className="text-sm font-medium text-[#0D1B3E] leading-relaxed">No. 312, Galle Road,<br />Mount Lavinia, Sri Lanka</div></div>
+                    <div className="w-10 h-10 rounded-full bg-[#E85D26]/10 flex items-center justify-center shrink-0"><MapPin size={18} className="text-[#E85D26]"/></div>
+                    <div><div className="text-xs font-semibold text-[#6B7A99] uppercase tracking-wider mb-1">Address</div><div className="text-sm font-medium text-[#0D1B3E] leading-relaxed">No. 312, Galle Road,<br/>Mount Lavinia, Sri Lanka</div></div>
                   </div>
                   <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-[#E85D26]/10 flex items-center justify-center shrink-0"><Phone size={18} className="text-[#E85D26]" /></div>
+                    <div className="w-10 h-10 rounded-full bg-[#E85D26]/10 flex items-center justify-center shrink-0"><Phone size={18} className="text-[#E85D26]"/></div>
                     <div><div className="text-xs font-semibold text-[#6B7A99] uppercase tracking-wider mb-1">General Line</div><div className="text-sm font-medium text-[#0D1B3E]">+94 112 638 538</div></div>
                   </div>
                   <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-[#E85D26]/10 flex items-center justify-center shrink-0"><MessageCircle size={18} className="text-[#E85D26]" /></div>
+                    <div className="w-10 h-10 rounded-full bg-[#E85D26]/10 flex items-center justify-center shrink-0"><MessageCircle size={18} className="text-[#E85D26]"/></div>
                     <div><div className="text-xs font-semibold text-[#6B7A99] uppercase tracking-wider mb-1">WhatsApp Sales</div><div className="text-sm font-medium text-[#0D1B3E]">+94 725 516 516</div></div>
                   </div>
                 </div>
@@ -436,13 +439,13 @@ export default function ForttuneApp() {
 
       {/* CART OVERLAY */}
       {isCartOpen && (
-        <div className="fixed inset-0 bg-[#0D1B3E]/40 backdrop-blur-sm z-50 flex justify-end" onClick={(e) => { if (e.target === e.currentTarget) setIsCartOpen(false) }}>
+        <div className="fixed inset-0 bg-[#0D1B3E]/40 backdrop-blur-sm z-50 flex justify-end" onClick={(e) => { if(e.target === e.currentTarget) setIsCartOpen(false) }}>
           <div className="w-full sm:w-[380px] bg-white h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
             <div className="p-5 border-b border-[#0D1B3E]/10 flex items-center justify-between bg-slate-50">
-              <h3 className="text-lg font-bold text-[#0D1B3E] flex items-center gap-2"><ShoppingCart size={20} /> Your Cart</h3>
+              <h3 className="text-lg font-bold text-[#0D1B3E] flex items-center gap-2"><ShoppingCart size={20}/> Your Cart</h3>
               <button onClick={() => setIsCartOpen(false)} className="text-[#6B7A99] hover:text-[#E85D26] bg-white rounded-full p-1 shadow-sm"><X size={20} /></button>
             </div>
-
+            
             <div className="flex-1 overflow-y-auto p-5">
               {cart.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
@@ -473,7 +476,7 @@ export default function ForttuneApp() {
                 </div>
               )}
             </div>
-
+            
             {cart.length > 0 && (
               <div className="p-6 border-t border-[#0D1B3E]/10 bg-white shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
                 <div className="flex justify-between items-end mb-6">
@@ -492,7 +495,7 @@ export default function ForttuneApp() {
       {/* TOAST NOTIFICATION */}
       {toastMsg && (
         <div className="fixed bottom-6 right-6 bg-[#0D1B3E] text-white py-3 px-5 rounded-xl text-sm font-medium shadow-2xl z-[100] animate-in slide-in-from-bottom-5 duration-300 flex items-center gap-3">
-          <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-green-400"><CheckCircle size={14} /></div>
+          <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-green-400"><CheckCircle size={14}/></div>
           {toastMsg}
         </div>
       )}
