@@ -235,9 +235,12 @@ export default function ForttuneApp() {
                     <p className="text-xs font-semibold text-[#0D1B3E] truncate">{currentUser.name || 'Customer'}</p>
                     <p className="text-xs text-[#6B7A99] truncate mt-0.5">{currentUser.email}</p>
                   </div>
+                  <a href="/dashboard" className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-[#0D1B3E] hover:bg-gray-50 transition-colors">
+                    <User size={14} /> My Dashboard
+                  </a>
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors"
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors border-t border-[#0D1B3E]/5"
                   >
                     <LogOut size={14} /> Sign Out
                   </button>

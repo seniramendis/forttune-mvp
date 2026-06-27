@@ -37,7 +37,7 @@ export default function LoginPage() {
       } else if (data.user.role === 'CASHIER') {
         router.push('/pos')
       } else {
-        router.push('/')
+        router.push('/dashboard')
       }
     } catch {
       setError('An unexpected error occurred. Please try again.')
