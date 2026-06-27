@@ -1,151 +1,136 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react';
+import Link from 'next/link';
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // Manages visibility toggle
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    if (form.password !== form.confirm) {
-      setError('Passwords do not match.')
-      return
-    }
-
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
-      })
-      const data = await res.json()
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Registration failed');
 
-      if (!res.ok) {
-        setError(data.error || 'Registration failed.')
-        return
-      }
-
-      setSuccess(true)
-      setTimeout(() => router.push('/login'), 2000)
-    } catch {
-      setError('An unexpected error occurred. Please try again.')
+      setSuccess('Account created successfully! You can now log in.');
+      setName('');
+      setEmail('');
+      setPassword('');
+    } catch (err: any) {
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-[#E85D26] rounded-lg flex items-center justify-center font-bold text-white text-lg">F</div>
-          <span className="font-semibold text-[#0D1B3E] text-xl tracking-wide">Forttune</span>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 rounded-lg bg-orange-500 flex items-center justify-center text-white text-xl font-bold">F</div>
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">Create Account</h2>
+          <p className="mt-2 text-sm text-gray-600">Register administrative portal access profile</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-[#0D1B3E]/10 p-8">
-          <h1 className="text-2xl font-bold text-[#0D1B3E] mb-1">Create an account</h1>
-          <p className="text-[#6B7A99] text-sm mb-6">Join Forttune to start shopping</p>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
 
-          {success ? (
-            <div className="p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm text-center">
-              ✓ Account created! Redirecting to login…
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
+            {success}
+          </div>
+        )}
+
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">FULL NAME</label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                placeholder="John Doe"
+              />
             </div>
-          ) : (
-            <>
-              {error && (
-                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-                  {error}
-                </div>
-              )}
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#6B7A99] uppercase tracking-wide mb-1.5">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={form.name}
-                    onChange={e => setForm({ ...form, name: e.target.value })}
-                    placeholder="John Silva"
-                    className="w-full border border-[#0D1B3E]/20 rounded-lg px-4 py-2.5 text-sm text-[#0D1B3E] placeholder-[#6B7A99]/60 focus:outline-none focus:border-[#E85D26] focus:ring-1 focus:ring-[#E85D26]/20 transition-colors"
-                  />
-                </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">EMAIL ADDRESS</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                placeholder="john@example.com"
+              />
+            </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-[#6B7A99] uppercase tracking-wide mb-1.5">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={form.email}
-                    onChange={e => setForm({ ...form, email: e.target.value })}
-                    placeholder="you@example.com"
-                    className="w-full border border-[#0D1B3E]/20 rounded-lg px-4 py-2.5 text-sm text-[#0D1B3E] placeholder-[#6B7A99]/60 focus:outline-none focus:border-[#E85D26] focus:ring-1 focus:ring-[#E85D26]/20 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#6B7A99] uppercase tracking-wide mb-1.5">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={form.password}
-                    onChange={e => setForm({ ...form, password: e.target.value })}
-                    placeholder="Min. 6 characters"
-                    className="w-full border border-[#0D1B3E]/20 rounded-lg px-4 py-2.5 text-sm text-[#0D1B3E] placeholder-[#6B7A99]/60 focus:outline-none focus:border-[#E85D26] focus:ring-1 focus:ring-[#E85D26]/20 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#6B7A99] uppercase tracking-wide mb-1.5">
-                    Confirm Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={form.confirm}
-                    onChange={e => setForm({ ...form, confirm: e.target.value })}
-                    placeholder="Repeat your password"
-                    className="w-full border border-[#0D1B3E]/20 rounded-lg px-4 py-2.5 text-sm text-[#0D1B3E] placeholder-[#6B7A99]/60 focus:outline-none focus:border-[#E85D26] focus:ring-1 focus:ring-[#E85D26]/20 transition-colors"
-                  />
-                </div>
-
+            <div>
+              <label className="text-sm font-medium text-gray-700">PASSWORD</label>
+              <div className="relative mt-1">
+                <input
+                  type={showPassword ? 'text' : 'password'} // Dynamically switches type
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black pr-10"
+                />
                 <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-[#E85D26] text-white font-semibold py-2.5 rounded-lg text-sm hover:bg-[#F47A4A] transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                 >
-                  {loading ? 'Creating account…' : 'Create Account'}
+                  {showPassword ? (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
                 </button>
-              </form>
-            </>
-          )}
+              </div>
+            </div>
+          </div>
 
-          <p className="text-center text-sm text-[#6B7A99] mt-6">
-            Already have an account?{' '}
-            <Link href="/login" className="text-[#E85D26] font-semibold hover:underline">
-              Sign in
-            </Link>
-          </p>
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50"
+            >
+              {loading ? 'Processing...' : 'Register Securely'}
+            </button>
+          </div>
+        </form>
+
+        <div className="text-center text-sm">
+          <span className="text-gray-600">Already have an administrative profile? </span>
+          <Link href="/login" className="text-orange-600 font-medium hover:underline">Login Here</Link>
         </div>
       </div>
     </div>
-  )
+  );
 }
