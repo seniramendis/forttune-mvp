@@ -6,7 +6,7 @@ import Link from 'next/link';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Manages visibility toggle
+  const [showPassword, setShowPassword] = useState(false); // Visibility control tracking
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +24,14 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Authentication failed');
       
-      // Redirect to admin hub on success
+      // ── BRIDGE CONTEXT TO CLEAR YOUR UNCHANGED ADMIN PAGE GUARD ──
+      localStorage.setItem('forttune_user', JSON.stringify({
+        email: data.user.email,
+        name: data.user.name,
+        role: data.user.role // Dynamically provides 'ADMIN' validation tracking flags
+      }));
+      
+      // Navigate straight to your administration node layout grid path
       window.location.href = '/admin';
     } catch (err: any) {
       setError(err.message);
@@ -37,7 +44,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-sm border border-gray-100">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 rounded-lg bg-orange-500 flex items-center justify-center text-white text-xl font-bold">F</div>
+          <div className="mx-auto h-12 w-12 rounded-lg bg-[#E85D26] flex items-center justify-center text-white text-xl font-bold">F</div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">Welcome back</h2>
           <p className="mt-2 text-sm text-gray-600">Access your terminal administration hub</p>
         </div>
@@ -57,7 +64,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-black animate-none"
                 placeholder="admin@forttune.com"
               />
             </div>
@@ -66,7 +73,7 @@ export default function LoginPage() {
               <label className="text-sm font-medium text-gray-700">PASSWORD</label>
               <div className="relative mt-1">
                 <input
-                  type={showPassword ? 'text' : 'password'} // Dynamically switches type
+                  type={showPassword ? 'text' : 'password'} // Switches input evaluation modes smoothly
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();
 
-    // Unified baseline message definition for all access rejections
+    // Unified baseline error message to eliminate user/email enumeration vectors
     const accessDeniedResponse = () => NextResponse.json(
       { error: "Invalid email or password security credentials." },
       { status: 401 }
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       return accessDeniedResponse();
     }
 
-    // 1. Fetch User securely using Prisma parameterized layers (Defends against SQL Injections)
+    // 1. Fetch User securely via Prisma parameterized query layers (Blocks SQL Injections)
     const user = await prisma.user.findUnique({
       where: { email }
     });
@@ -26,27 +26,31 @@ export async function POST(request: Request) {
       return accessDeniedResponse();
     }
 
-    // 2. Secure Hash Verification against stored Bcrypt string
+    // 2. Cryptographic Password Verification against secure Bcrypt hashes
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return accessDeniedResponse();
     }
 
-    // 3. Post-Authentication Session Management Configuration
-    // Generate a high-entropy cryptographically secure random session string
+    // 3. High-Entropy Session Generation
     const sessionToken = crypto.randomBytes(32).toString('hex');
     
-    // Set cookie parameters for session defense mechanisms
+    // Configure production cookie defense controls
     const response = NextResponse.json({
       success: true,
-      user: { id: user.id, email: user.email, name: user.name, role: user.role }
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        name: user.name, 
+        role: user.role 
+      }
     });
 
     response.cookies.set('admin_session', sessionToken, {
-      httpOnly: true,     // Prevents client-side Cross-Site Scripting (XSS) script tracking loops
-      secure: true,       // Enforces transmission exclusively over encrypted HTTPS connections
-      sameSite: 'strict', // Blocks Cross-Site Request Forgery (CSRF) vectors entirely
-      maxAge: 60 * 60 * 4, // 4-hour session lifecycle management window
+      httpOnly: true,     // Protects token values against client-side XSS malicious scripts
+      secure: true,       // Enforces exclusive transmission over encrypted HTTPS channels
+      sameSite: 'strict', // Hardens the network framework entirely against CSRF exploit flags
+      maxAge: 60 * 60 * 4, // 4-hour active session lifetime window
       path: '/'
     });
 
