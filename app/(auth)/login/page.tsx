@@ -24,11 +24,12 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Authentication failed');
       
-      // ── BRIDGE CONTEXT TO CLEAR YOUR UNCHANGED ADMIN PAGE GUARD ──
+      // Store user info locally — id is required by dashboard and checkout
       localStorage.setItem('forttune_user', JSON.stringify({
+        id: data.user.id,
         email: data.user.email,
         name: data.user.name,
-        role: data.user.role // Dynamically provides 'ADMIN' validation tracking flags
+        role: data.user.role,
       }));
       
       // Navigate straight to your administration node layout grid path

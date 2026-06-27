@@ -182,6 +182,47 @@ export default function ForttuneApp() {
   const cartTotal = cart.reduce((s, x) => s + (x.price * x.qty), 0);
   const cartCount = cart.reduce((s, x) => s + x.qty, 0);
 
+  // Checkout state
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'payment' | 'success'>('cart');
+  const [webPaymentMethod, setWebPaymentMethod] = useState<'CARD' | 'ONLINE'>('CARD');
+
+  const handleWebCheckout = async () => {
+    if (!currentUser?.id) {
+      showToast('Please sign in to place an order.');
+      setIsCartOpen(false);
+      window.location.href = '/login';
+      return;
+    }
+    if (cart.length === 0) return;
+    setIsCheckingOut(true);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cart,
+          userId: currentUser.id,
+          paymentMethod: webPaymentMethod,
+          isPosOrder: false,
+          total: cartTotal,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Checkout failed');
+      }
+      setCart([]);
+      setCheckoutStep('success');
+      fetch('/api/products').then(r => r.json()).then(data => { if (Array.isArray(data)) setInventory(data); });
+      setTimeout(() => { setCheckoutStep('cart'); setIsCartOpen(false); }, 3200);
+    } catch (err: any) {
+      showToast(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
   const ProductCard = ({ p }: { p: any }) => {
     const isRecentlyAdded = p.createdAt ? (new Date().getTime() - new Date(p.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
     const showNewBadge = p.stock > 0 && (p.badge === 'new' || isRecentlyAdded);
@@ -620,9 +661,32 @@ export default function ForttuneApp() {
                   <span className="text-sm font-bold text-[#6B7A99] uppercase tracking-wider">Estimated Total</span>
                   <span className="text-2xl font-extrabold text-[#0D1B3E]">{formatLKR(cartTotal)}</span>
                 </div>
-                <button onClick={() => showToast('Secure Checkout via PayHere — Coming in Phase 3!')} className="w-full bg-[#0D1B3E] text-white font-bold py-4 rounded-xl hover:bg-[#1A2F5E] transition-all shadow-lg flex justify-center items-center gap-2">
-                  <ShieldCheck size={20} /> Checkout Securely
-                </button>
+                {checkoutStep === 'success' ? (
+                  <div className="w-full bg-green-50 border border-green-200 text-green-700 font-semibold py-4 rounded-xl flex items-center justify-center gap-2 text-sm">
+                    <CheckCircle size={20} className="text-green-500" /> Order placed successfully!
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      {(['CARD', 'ONLINE'] as const).map(m => (
+                        <button
+                          key={m}
+                          onClick={() => setWebPaymentMethod(m)}
+                          className={`flex-1 py-2 rounded-lg text-sm font-semibold border transition-colors ${webPaymentMethod === m ? 'bg-[#0D1B3E] text-white border-[#0D1B3E]' : 'bg-white text-[#6B7A99] border-[#0D1B3E]/20 hover:border-[#0D1B3E]'}`}
+                        >
+                          {m === 'CARD' ? 'Card' : 'Online Transfer'}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={handleWebCheckout}
+                      disabled={isCheckingOut}
+                      className="w-full bg-[#0D1B3E] text-white font-bold py-4 rounded-xl hover:bg-[#1A2F5E] transition-all shadow-lg flex justify-center items-center gap-2 disabled:opacity-60"
+                    >
+                      <ShieldCheck size={20} /> {isCheckingOut ? 'Placing order...' : currentUser ? 'Place Order' : 'Sign in to checkout'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

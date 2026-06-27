@@ -10,6 +10,18 @@ export default function PosTerminal() {
   const [search, setSearch] = useState('');
   const [barcode, setBarcode] = useState('');
   
+  // Load cashier name from session
+  const [cashierName, setCashierName] = useState('Cashier');
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('forttune_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        setCashierName(u.name || u.email || 'Cashier');
+      }
+    } catch {}
+  }, []);
+
   // Checkout State
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
@@ -134,7 +146,7 @@ export default function PosTerminal() {
           </div>
           <div className="flex items-center gap-4 text-sm text-slate-400">
             <span>Terminal 01</span>
-            <span className="px-2 py-1 bg-slate-800 rounded-md text-slate-300">Cashier: Senira</span>
+            <span className="px-2 py-1 bg-slate-800 rounded-md text-slate-300">Cashier: {cashierName.split(' ')[0]}</span>
           </div>
         </div>
 
