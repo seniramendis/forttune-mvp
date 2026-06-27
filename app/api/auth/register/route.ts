@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { Role } from '@prisma/client';
 
 // Strict regular expression validation for proper email formats
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
         email,
         name,
         password: hashedPassword,
-        role: 'USER' // Defends against privilege escalation attacks
+        role: Role.CUSTOMER // <-- Change Role.USER to Role.CUSTOMER here
       }
     });
 
