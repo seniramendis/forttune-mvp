@@ -170,7 +170,7 @@ export default function ForttuneApp() {
   };
 
   const filteredProducts = inventory.filter(p => {
-    if (!p || p.badge === 'archived_hidden') return false; // Filter out soft-deleted products dynamically
+    if (!p || p.badge === 'archived_hidden') return false; 
     
     const catOk = activeCat === 'All' || p.category === activeCat;
     const sOk = !search || p.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -183,10 +183,7 @@ export default function ForttuneApp() {
   const cartCount = cart.reduce((s, x) => s + x.qty, 0);
 
   const ProductCard = ({ p }: { p: any }) => {
-    // Calculate if the item is less than 7 days old
     const isRecentlyAdded = p.createdAt ? (new Date().getTime() - new Date(p.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
-    
-    // Hide New badge if the product has 0 stock, otherwise evaluate rules
     const showNewBadge = p.stock > 0 && (p.badge === 'new' || isRecentlyAdded);
 
     return (
@@ -194,7 +191,6 @@ export default function ForttuneApp() {
         onClick={() => openProductDetail(p)}
         className="bg-white border-[0.5px] border-[#0D1B3E]/10 rounded-[10px] overflow-hidden cursor-pointer hover:border-[#E85D26] hover:shadow-lg transition-all flex flex-col h-full group"
       >
-        {/* PRODUCT VISUAL IMAGE / ICON FRAME */}
         <div className="bg-[#F5F6FA] h-[110px] w-full flex items-center justify-center relative shrink-0 group-hover:bg-slate-100 transition-colors p-2">
           {p.image ? (
             <img 
@@ -209,10 +205,8 @@ export default function ForttuneApp() {
             getCatIcon(p.category, "w-10 h-10 text-[#1A2F5E]/20")
           )}
           
-          {/* BADGE PLACEMENT SYSTEM */}
           {p.stock > 0 && p.badge === 'hot' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#E85D26]">Hot</span>}
           {showNewBadge && p.badge !== 'hot' && <span className="absolute top-[7px] left-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-white bg-[#1D9E75]">New</span>}
-          
           {p.stock === 0 && <span className="absolute top-[7px] right-[7px] text-[9px] font-medium px-[6px] py-[2px] rounded-[4px] text-red-600 bg-red-100">Out of Stock</span>}
         </div>
         
@@ -282,7 +276,8 @@ export default function ForttuneApp() {
                     <p className="text-xs font-semibold text-[#0D1B3E] truncate">{currentUser.name || 'Customer'}</p>
                     <p className="text-xs text-[#6B7A99] truncate mt-0.5">{currentUser.email}</p>
                   </div>
-                  <a href="/dashboard" className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-[#0D1B3E] hover:bg-gray-50 transition-colors">
+                  {/* --- FIX IS APPLIED HERE: Dynamics role check --- */}
+                  <a href={currentUser.role === 'ADMIN' ? '/admin' : '/dashboard'} className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-[#0D1B3E] hover:bg-gray-50 transition-colors">
                     <User size={14} /> My Dashboard
                   </a>
                   <button
