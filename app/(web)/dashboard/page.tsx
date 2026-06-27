@@ -7,7 +7,7 @@ import {
   ShoppingBag, MapPin, User, LogOut, ChevronRight,
   Package, Clock, CheckCircle, Truck, Star, Bell,
   Shield, Gift, HeadphonesIcon, Download, Heart,
-  TrendingUp, Zap, Award
+  TrendingUp, Zap, Award, X, Save
 } from 'lucide-react'
 
 const NAV = [
@@ -25,6 +25,107 @@ const ORDER_STATUSES: Record<string, { label: string; color: string; icon: any }
   PROCESSING: { label: 'Processing', color: 'text-blue-600 bg-blue-50 border-blue-200',      icon: Package },
   SHIPPED:    { label: 'Shipped',    color: 'text-purple-600 bg-purple-50 border-purple-200', icon: Truck },
   DELIVERED:  { label: 'Delivered',  color: 'text-green-600 bg-green-50 border-green-200',   icon: CheckCircle },
+  COMPLETED:  { label: 'Completed',  color: 'text-green-600 bg-green-50 border-green-200',   icon: CheckCircle },
+  CANCELLED:  { label: 'Cancelled',  color: 'text-red-600 bg-red-50 border-red-200',         icon: X },
+}
+
+// ── Wishlist helpers (localStorage-backed) ────────────────────────────────────
+const WISHLIST_KEY = 'forttune_wishlist'
+const getWishlist = (): any[] => {
+  try { return JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]') } catch { return [] }
+}
+const saveWishlist = (items: any[]) => localStorage.setItem(WISHLIST_KEY, JSON.stringify(items))
+
+// ── Address modal component ───────────────────────────────────────────────────
+function AddressModal({ onClose, onSave }: { onClose: () => void; onSave: (a: any) => void }) {
+  const [form, setForm] = useState({ label: 'Home', line1: '', line2: '', city: '', phone: '' })
+  const set = (k: string, v: string) => setForm(prev => ({ ...prev, [k]: v }))
+  return (
+    <div className="fixed inset-0 bg-[#0D1B3E]/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#0D1B3E]/10 flex items-center justify-between">
+          <h2 className="font-semibold text-[#0D1B3E]">Add New Address</h2>
+          <button onClick={onClose} className="text-[#6B7A99] hover:text-[#E85D26]"><X size={18}/></button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-[#6B7A99] uppercase tracking-wide mb-1">Label</label>
+            <select value={form.label} onChange={e => set('label', e.target.value)}
+              className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]">
+              <option>Home</option><option>Work</option><option>Other</option>
+            </select>
+          </div>
+          {[
+            { key: 'line1', label: 'Address Line 1', placeholder: 'No. 12, Main Street' },
+            { key: 'line2', label: 'Address Line 2 (optional)', placeholder: 'Apt, Floor, etc.' },
+            { key: 'city',  label: 'City', placeholder: 'Colombo' },
+            { key: 'phone', label: 'Contact Phone', placeholder: '+94 7X XXX XXXX' },
+          ].map(f => (
+            <div key={f.key}>
+              <label className="block text-xs font-semibold text-[#6B7A99] uppercase tracking-wide mb-1">{f.label}</label>
+              <input
+                type="text" placeholder={f.placeholder}
+                value={(form as any)[f.key]}
+                onChange={e => set(f.key, e.target.value)}
+                className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]"
+              />
+            </div>
+          ))}
+          <div className="flex gap-3 pt-2">
+            <button onClick={onClose} className="flex-1 border border-[#0D1B3E]/20 text-[#6B7A99] font-semibold py-2.5 rounded-lg text-sm hover:bg-gray-50">
+              Cancel
+            </button>
+            <button
+              onClick={() => { if (form.line1 && form.city) { onSave(form); onClose() } }}
+              className="flex-1 bg-[#E85D26] text-white font-semibold py-2.5 rounded-lg text-sm hover:bg-[#F47A4A] flex items-center justify-center gap-2"
+            >
+              <Save size={14}/> Save Address
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Edit Profile modal ────────────────────────────────────────────────────────
+function EditProfileModal({ user, onClose, onSave }: { user: any; onClose: () => void; onSave: (u: any) => void }) {
+  const [name, setName] = useState(user.name || '')
+  return (
+    <div className="fixed inset-0 bg-[#0D1B3E]/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#0D1B3E]/10 flex items-center justify-between">
+          <h2 className="font-semibold text-[#0D1B3E]">Edit Profile</h2>
+          <button onClick={onClose} className="text-[#6B7A99] hover:text-[#E85D26]"><X size={18}/></button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-[#6B7A99] uppercase tracking-wide mb-1">Full Name</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)}
+              className="w-full border border-[#0D1B3E]/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#E85D26]"
+              placeholder="Your full name" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-[#6B7A99] uppercase tracking-wide mb-1">Email</label>
+            <input type="email" value={user.email} disabled
+              className="w-full border border-[#0D1B3E]/10 rounded-lg px-3 py-2 text-sm bg-gray-50 text-[#6B7A99] cursor-not-allowed" />
+            <p className="text-[10px] text-[#6B7A99] mt-1">Email cannot be changed here.</p>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button onClick={onClose} className="flex-1 border border-[#0D1B3E]/20 text-[#6B7A99] font-semibold py-2.5 rounded-lg text-sm hover:bg-gray-50">
+              Cancel
+            </button>
+            <button
+              onClick={() => { onSave({ ...user, name }); onClose() }}
+              className="flex-1 bg-[#0D1B3E] text-white font-semibold py-2.5 rounded-lg text-sm hover:bg-[#1A3060] flex items-center justify-center gap-2"
+            >
+              <Save size={14}/> Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function DashboardPage() {
@@ -33,17 +134,28 @@ export default function DashboardPage() {
   const [tab, setTab] = useState('overview')
   const [orders, setOrders] = useState<any[]>([])
   const [ordersLoading, setOrdersLoading] = useState(false)
+  const [wishlist, setWishlist] = useState<any[]>([])
+  const [addresses, setAddresses] = useState<any[]>([])
+  const [showAddressModal, setShowAddressModal] = useState(false)
+  const [showEditProfile, setShowEditProfile] = useState(false)
 
+  // ── Load user from localStorage ──────────────────────────────────────────
   useEffect(() => {
     try {
       const stored = localStorage.getItem('forttune_user')
       if (!stored) { router.push('/login'); return }
-      setUser(JSON.parse(stored))
+      const parsed = JSON.parse(stored)
+      setUser(parsed)
+      setWishlist(getWishlist())
+      // Load saved addresses per-user
+      const addrKey = `forttune_addresses_${parsed.id}`
+      try { setAddresses(JSON.parse(localStorage.getItem(addrKey) || '[]')) } catch {}
     } catch {
       router.push('/login')
     }
   }, [])
 
+  // ── Fetch orders when tab switches ───────────────────────────────────────
   useEffect(() => {
     if (tab === 'orders' && user) fetchOrders()
   }, [tab, user])
@@ -63,6 +175,29 @@ export default function DashboardPage() {
     router.push('/')
   }
 
+  const saveAddress = (addr: any) => {
+    const updated = [...addresses, { ...addr, id: Date.now().toString() }]
+    setAddresses(updated)
+    localStorage.setItem(`forttune_addresses_${user.id}`, JSON.stringify(updated))
+  }
+
+  const deleteAddress = (id: string) => {
+    const updated = addresses.filter(a => a.id !== id)
+    setAddresses(updated)
+    localStorage.setItem(`forttune_addresses_${user.id}`, JSON.stringify(updated))
+  }
+
+  const removeFromWishlist = (productId: string) => {
+    const updated = wishlist.filter(w => w.id !== productId)
+    setWishlist(updated)
+    saveWishlist(updated)
+  }
+
+  const handleSaveProfile = (updated: any) => {
+    setUser(updated)
+    localStorage.setItem('forttune_user', JSON.stringify(updated))
+  }
+
   if (!user) return (
     <div className="min-h-screen bg-[#F5F6FA] flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-[#E85D26] border-t-transparent rounded-full animate-spin" />
@@ -70,9 +205,18 @@ export default function DashboardPage() {
   )
 
   const initials = (user.name || user.email || '?').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+  // Fix #16: derive member since from user.createdAt, fallback to current month
+  const memberSince = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-LK', { month: 'long', year: 'numeric' })
+    : new Date().toLocaleDateString('en-LK', { month: 'long', year: 'numeric' })
 
   return (
     <div className="min-h-screen bg-[#F5F6FA]">
+
+      {/* Modals */}
+      {showAddressModal && <AddressModal onClose={() => setShowAddressModal(false)} onSave={saveAddress} />}
+      {showEditProfile && <EditProfileModal user={user} onClose={() => setShowEditProfile(false)} onSave={handleSaveProfile} />}
+
       {/* TOP NAV */}
       <nav className="bg-white border-b border-[#0D1B3E]/10 h-[60px] flex items-center justify-between px-5 md:px-10 sticky top-0 z-40 shadow-sm">
         <Link href="/" className="flex items-center gap-2.5">
@@ -80,10 +224,16 @@ export default function DashboardPage() {
           <span className="font-semibold text-[#0D1B3E] text-base tracking-wide">Forttune</span>
         </Link>
         <div className="flex items-center gap-3">
-          <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <Bell size={18} className="text-[#6B7A99]" />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#E85D26] rounded-full" />
-          </button>
+          {/* Fix #6: Bell is cosmetic — shows a tooltip on hover explaining it */}
+          <div className="relative group">
+            <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <Bell size={18} className="text-[#6B7A99]" />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#E85D26] rounded-full" />
+            </button>
+            <div className="absolute right-0 top-full mt-2 w-48 bg-[#0D1B3E] text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+              Notifications coming soon
+            </div>
+          </div>
           <Link href="/" className="text-sm text-[#6B7A99] hover:text-[#0D1B3E] transition-colors">← Back to Store</Link>
         </div>
       </nav>
@@ -94,7 +244,6 @@ export default function DashboardPage() {
         <aside className="w-64 shrink-0 sticky top-[76px]">
           {/* Profile card */}
           <div className="bg-white rounded-2xl border border-[#0D1B3E]/10 overflow-hidden mb-3 shadow-sm">
-            {/* Orange banner */}
             <div className="h-16 bg-gradient-to-r from-[#0D1B3E] to-[#1A3060] relative">
               <div className="absolute -bottom-6 left-5">
                 <div className="w-12 h-12 rounded-xl bg-[#E85D26] text-white flex items-center justify-center text-lg font-bold shadow-lg border-2 border-white">
@@ -156,20 +305,20 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Quick stats */}
+              {/* Fix #2: Quick stats derived from real data */}
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { label: 'Total Orders', value: '0', icon: ShoppingBag, color: 'bg-blue-50 text-blue-600' },
-                  { label: 'Saved Items', value: '0', icon: Heart, color: 'bg-rose-50 text-rose-500' },
-                  { label: 'Reward Points', value: '0 pts', icon: Gift, color: 'bg-amber-50 text-amber-500' },
+                  { label: 'Total Orders', value: orders.length > 0 ? orders.length.toString() : '—', icon: ShoppingBag, color: 'bg-blue-50 text-blue-600', action: () => { setTab('orders'); fetchOrders() } },
+                  { label: 'Saved Items',  value: wishlist.length.toString(),  icon: Heart, color: 'bg-rose-50 text-rose-500', action: () => setTab('wishlist') },
+                  { label: 'Reward Points', value: '0 pts', icon: Gift, color: 'bg-amber-50 text-amber-500', action: undefined },
                 ].map(s => (
-                  <div key={s.label} className="bg-white rounded-xl border border-[#0D1B3E]/10 p-4 shadow-sm">
+                  <button key={s.label} onClick={s.action} className={`bg-white rounded-xl border border-[#0D1B3E]/10 p-4 shadow-sm text-left ${s.action ? 'hover:border-[#E85D26] transition-colors' : ''}`}>
                     <div className={`w-9 h-9 rounded-lg ${s.color} flex items-center justify-center mb-3`}>
                       <s.icon size={17} />
                     </div>
                     <p className="text-xl font-bold text-[#0D1B3E]">{s.value}</p>
                     <p className="text-xs text-[#6B7A99] mt-0.5">{s.label}</p>
-                  </div>
+                  </button>
                 ))}
               </div>
 
@@ -180,10 +329,10 @@ export default function DashboardPage() {
                 </div>
                 <div className="grid grid-cols-2 divide-x divide-y divide-[#0D1B3E]/5">
                   {[
-                    { label: 'Track My Order',     icon: Truck,           action: () => setTab('orders'),    desc: 'See live delivery status' },
-                    { label: 'Browse Products',    icon: Zap,             action: () => router.push('/'),    desc: 'Explore our full catalog' },
-                    { label: 'Saved Items',        icon: Heart,           action: () => setTab('wishlist'),  desc: 'Items you\'ve bookmarked' },
-                    { label: 'Get Support',        icon: HeadphonesIcon,  action: () => setTab('support'),   desc: 'We\'re here to help' },
+                    { label: 'Track My Order',     icon: Truck,           action: () => { setTab('orders'); fetchOrders() }, desc: 'See live delivery status' },
+                    { label: 'Browse Products',    icon: Zap,             action: () => router.push('/'),                   desc: 'Explore our full catalog' },
+                    { label: 'Saved Items',        icon: Heart,           action: () => setTab('wishlist'),                 desc: 'Items you\'ve bookmarked' },
+                    { label: 'Get Support',        icon: HeadphonesIcon,  action: () => setTab('support'),                  desc: 'We\'re here to help' },
                   ].map(a => (
                     <button key={a.label} onClick={a.action} className="flex items-center gap-3 px-5 py-4 hover:bg-[#F5F6FA] transition-colors text-left group">
                       <div className="w-9 h-9 rounded-lg bg-[#0D1B3E]/5 flex items-center justify-center group-hover:bg-[#E85D26]/10 transition-colors shrink-0">
@@ -276,23 +425,47 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── WISHLIST ── */}
+          {/* ── WISHLIST (Fix #5) ── */}
           {tab === 'wishlist' && (
             <div className="bg-white rounded-2xl border border-[#0D1B3E]/10 shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-[#0D1B3E]/5">
                 <h2 className="font-semibold text-[#0D1B3E]">Saved Items</h2>
                 <p className="text-xs text-[#6B7A99] mt-0.5">Products you've bookmarked</p>
               </div>
-              <div className="flex flex-col items-center justify-center py-16 text-center px-6">
-                <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4">
-                  <Heart size={28} className="text-rose-300" />
+              {wishlist.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+                  <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4">
+                    <Heart size={28} className="text-rose-300" />
+                  </div>
+                  <p className="font-semibold text-[#0D1B3E]">Nothing saved yet</p>
+                  <p className="text-sm text-[#6B7A99] mt-1 mb-4">Tap the heart icon on any product to save it here.</p>
+                  <button onClick={() => router.push('/')} className="bg-[#E85D26] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-[#F47A4A] transition-colors">
+                    Explore Products
+                  </button>
                 </div>
-                <p className="font-semibold text-[#0D1B3E]">Nothing saved yet</p>
-                <p className="text-sm text-[#6B7A99] mt-1 mb-4">Tap the heart icon on any product to save it here.</p>
-                <button onClick={() => router.push('/')} className="bg-[#E85D26] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-[#F47A4A] transition-colors">
-                  Explore Products
-                </button>
-              </div>
+              ) : (
+                <div className="divide-y divide-[#0D1B3E]/5">
+                  {wishlist.map((item: any) => (
+                    <div key={item.id} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50/50">
+                      <div className="w-12 h-12 bg-[#F5F6FA] rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+                        {item.image
+                          ? <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                          : <Package size={20} className="text-[#6B7A99]/40" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#0D1B3E] truncate">{item.name}</p>
+                        <p className="text-xs text-[#6B7A99] mt-0.5">{item.brand}</p>
+                      </div>
+                      <div className="text-right flex items-center gap-3">
+                        <p className="text-sm font-bold text-[#0D1B3E]">Rs {item.price?.toLocaleString('en-LK')}</p>
+                        <button onClick={() => removeFromWishlist(item.id)} className="text-[#6B7A99] hover:text-red-500 transition-colors">
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -313,7 +486,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── ADDRESSES ── */}
+          {/* ── ADDRESSES (Fix #4) ── */}
           {tab === 'addresses' && (
             <div className="bg-white rounded-2xl border border-[#0D1B3E]/10 shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-[#0D1B3E]/5 flex items-center justify-between">
@@ -321,22 +494,47 @@ export default function DashboardPage() {
                   <h2 className="font-semibold text-[#0D1B3E]">Saved Addresses</h2>
                   <p className="text-xs text-[#6B7A99] mt-0.5">Manage your delivery addresses</p>
                 </div>
-                <button className="text-xs font-semibold bg-[#0D1B3E] text-white px-3 py-1.5 rounded-lg hover:bg-[#1A3060] transition-colors">+ Add Address</button>
-              </div>
-              <div className="flex flex-col items-center justify-center py-16 text-center px-6">
-                <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-4">
-                  <MapPin size={28} className="text-green-300" />
-                </div>
-                <p className="font-semibold text-[#0D1B3E]">No addresses saved</p>
-                <p className="text-sm text-[#6B7A99] mt-1 mb-4">Add a delivery address to speed up checkout.</p>
-                <button className="bg-[#E85D26] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-[#F47A4A] transition-colors">
-                  Add New Address
+                <button
+                  onClick={() => setShowAddressModal(true)}
+                  className="text-xs font-semibold bg-[#0D1B3E] text-white px-3 py-1.5 rounded-lg hover:bg-[#1A3060] transition-colors"
+                >
+                  + Add Address
                 </button>
               </div>
+              {addresses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+                  <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-4">
+                    <MapPin size={28} className="text-green-300" />
+                  </div>
+                  <p className="font-semibold text-[#0D1B3E]">No addresses saved</p>
+                  <p className="text-sm text-[#6B7A99] mt-1 mb-4">Add a delivery address to speed up checkout.</p>
+                  <button onClick={() => setShowAddressModal(true)} className="bg-[#E85D26] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-[#F47A4A] transition-colors">
+                    Add New Address
+                  </button>
+                </div>
+              ) : (
+                <div className="divide-y divide-[#0D1B3E]/5">
+                  {addresses.map((addr: any) => (
+                    <div key={addr.id} className="px-6 py-4 flex items-start gap-4">
+                      <div className="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center shrink-0">
+                        <MapPin size={16} className="text-green-500" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-[#0D1B3E]">{addr.label}</p>
+                        <p className="text-xs text-[#6B7A99] mt-0.5">{addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}, {addr.city}</p>
+                        {addr.phone && <p className="text-xs text-[#6B7A99]">{addr.phone}</p>}
+                      </div>
+                      <button onClick={() => deleteAddress(addr.id)} className="text-[#6B7A99] hover:text-red-500 transition-colors mt-1">
+                        <X size={15} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
-          {/* ── PROFILE ── */}
+          {/* ── PROFILE (Fix #3, #16) ── */}
           {tab === 'profile' && (
             <div className="bg-white rounded-2xl border border-[#0D1B3E]/10 shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-[#0D1B3E]/5">
@@ -345,17 +543,21 @@ export default function DashboardPage() {
               </div>
               <div className="p-6 space-y-4">
                 {[
-                  { label: 'Full Name', value: user.name || '—' },
-                  { label: 'Email Address', value: user.email },
-                  { label: 'Account Role', value: user.role || 'Customer' },
-                  { label: 'Member Since', value: 'June 2026' },
+                  { label: 'Full Name',      value: user.name || '—' },
+                  { label: 'Email Address',  value: user.email },
+                  { label: 'Account Role',   value: user.role || 'Customer' },
+                  { label: 'Member Since',   value: memberSince },
                 ].map(f => (
                   <div key={f.label} className="flex items-center justify-between py-3 border-b border-[#0D1B3E]/5 last:border-0">
                     <p className="text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">{f.label}</p>
                     <p className="text-sm font-medium text-[#0D1B3E]">{f.value}</p>
                   </div>
                 ))}
-                <button className="mt-2 w-full bg-[#0D1B3E] text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-[#1A3060] transition-colors">
+                {/* Fix #3: Edit Profile now opens a working modal */}
+                <button
+                  onClick={() => setShowEditProfile(true)}
+                  className="mt-2 w-full bg-[#0D1B3E] text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-[#1A3060] transition-colors"
+                >
                   Edit Profile
                 </button>
               </div>
@@ -372,10 +574,10 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {[
-                  { icon: '📞', title: 'Call Us',        desc: '+94 11 234 5678',               sub: 'Mon–Sat, 9AM–6PM',       action: 'tel:+94112345678' },
-                  { icon: '💬', title: 'WhatsApp',       desc: 'Chat with our team',            sub: 'Usually replies in 1hr',  action: 'https://wa.me/94112345678' },
-                  { icon: '📧', title: 'Email Support',  desc: 'support@forttune.lk',           sub: 'Within 24 hours',         action: 'mailto:support@forttune.lk' },
-                  { icon: '📍', title: 'Visit Us',       desc: 'Mt. Lavinia, Colombo',          sub: 'Showroom open daily',     action: '#' },
+                  { icon: '📞', title: 'Call Us',        desc: '+94 11 234 5678',        sub: 'Mon–Sat, 9AM–6PM',      action: 'tel:+94112345678' },
+                  { icon: '💬', title: 'WhatsApp',       desc: 'Chat with our team',     sub: 'Usually replies in 1hr', action: 'https://wa.me/94112345678' },
+                  { icon: '📧', title: 'Email Support',  desc: 'support@forttune.lk',    sub: 'Within 24 hours',        action: 'mailto:support@forttune.lk' },
+                  { icon: '📍', title: 'Visit Us',       desc: 'Mt. Lavinia, Colombo',   sub: 'Showroom open daily',    action: '#' },
                 ].map(c => (
                   <a key={c.title} href={c.action} className="bg-white rounded-xl border border-[#0D1B3E]/10 p-4 flex items-center gap-4 hover:shadow-md transition-shadow shadow-sm">
                     <div className="w-11 h-11 bg-[#F5F6FA] rounded-xl flex items-center justify-center text-xl shrink-0">{c.icon}</div>

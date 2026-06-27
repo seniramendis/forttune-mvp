@@ -4,14 +4,17 @@ import { broadcastReload } from './stream/route';
 
 export const dynamic = 'force-dynamic';
 
-// 1. GET ALL PRODUCTS (Return everything but mark archived states clearly)
-export async function GET() {
+// 1. GET ALL PRODUCTS — excludes soft-deleted (archived_hidden) unless ?admin=1
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const isAdmin = searchParams.get('admin') === '1';
+
     const products = await prisma.product.findMany({
+      where: isAdmin ? undefined : { badge: { not: 'archived_hidden' } },
       orderBy: { createdAt: 'desc' }
     });
     
-    // Safely structure elements without losing model references or blocking creation loops
     return NextResponse.json(products);
   } catch (error) {
     console.error("API Error:", error);

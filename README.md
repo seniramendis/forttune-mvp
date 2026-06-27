@@ -2,7 +2,23 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First, seed the database (creates products **and** the default admin account):
+
+```bash
+npx prisma db seed
+```
+
+**Default admin credentials**
+
+| Field    | Value                  |
+|----------|------------------------|
+| Email    | `admin@forttune.lk`    |
+| Password | `admin123`             |
+| URL      | `/login` → redirects to `/admin` |
+
+> Change the password after first login by updating the User record directly in Prisma Studio (`npx prisma studio`).
+
+Then run the development server:
 
 ```bash
 npm run dev

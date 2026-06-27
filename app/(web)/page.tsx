@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, 
+  ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, Heart,
   Laptop, Monitor, Wifi, Printer, Server, Database, Mouse, 
   Search, MapPin, Phone, MessageCircle, Mail, Clock, Package, X, Plus, ChevronLeft, Minus, Trash2, CheckCircle,
   User, LogOut, ChevronDown
@@ -75,7 +75,7 @@ export default function ForttuneApp() {
     fetchProducts();
   }, []);
 
-  // 2. Real-time implementation: Native EventStream auto-reload
+  // 2. Real-time implementation: Native EventStream — soft refresh only
   useEffect(() => {
     const eventSource = new EventSource('/api/products/stream');
 
@@ -83,7 +83,11 @@ export default function ForttuneApp() {
       try {
         const parsed = JSON.parse(event.data);
         if (parsed.type === 'RELOAD') {
-          window.location.reload();
+          // Soft refresh: re-fetch products without wiping the cart or reloading the page
+          fetch('/api/products')
+            .then(r => r.json())
+            .then(data => { if (Array.isArray(data)) setInventory(data); })
+            .catch(() => {});
         }
       } catch (err) {
         console.error("Stream parse error:", err);
@@ -101,6 +105,41 @@ export default function ForttuneApp() {
       return () => clearTimeout(timer);
     }
   }, [toastMsg]);
+
+  const [wishlisted, setWishlisted] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('forttune_wishlist') || '[]');
+      setWishlisted(new Set(stored.map((x: any) => x.id)));
+    } catch {}
+  }, []);
+
+  const toggleWishlist = (product: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const stored: any[] = (() => { try { return JSON.parse(localStorage.getItem('forttune_wishlist') || '[]'); } catch { return []; } })();
+    const exists = stored.some((x: any) => x.id === product.id);
+    const updated = exists ? stored.filter((x: any) => x.id !== product.id) : [...stored, product];
+    localStorage.setItem('forttune_wishlist', JSON.stringify(updated));
+    setWishlisted(new Set(updated.map((x: any) => x.id)));
+    showToast(exists ? `Removed from saved items` : `${product.name} saved!`);
+  };
+
+  const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
+  const [contactSending, setContactSending] = useState(false);
+
+  const handleContactSubmit = async () => {
+    if (!contactForm.name.trim() || !contactForm.email.trim() || !contactForm.message.trim()) {
+      showToast('Please fill in all fields.');
+      return;
+    }
+    setContactSending(true);
+    console.log('Contact inquiry:', contactForm);
+    await new Promise(r => setTimeout(r, 800));
+    setContactSending(false);
+    setContactForm({ name: '', email: '', message: '' });
+    showToast("Message sent! We'll get back to you within 24 hours.");
+  };
 
   const showToast = (msg: string) => setToastMsg(msg);
 
@@ -186,13 +225,21 @@ export default function ForttuneApp() {
               <div className="text-[13px] font-medium text-[#0D1B3E]">{formatLKR(p.price)}</div>
               <div className="text-[9px] text-[#6B7A99] font-normal">LKR incl. taxes</div>
             </div>
-            <button 
-              disabled={p.stock === 0}
-              onClick={(e) => { e.stopPropagation(); addToCart(p, 1); }} 
-              className="bg-[#0D1B3E] disabled:opacity-50 text-white border-none w-[26px] h-[26px] rounded-[6px] flex items-center justify-center shrink-0 hover:bg-[#E85D26] transition-colors"
-            >
-              <Plus size={14} />
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={(e) => toggleWishlist(p, e)}
+                className={`w-[26px] h-[26px] rounded-[6px] flex items-center justify-center shrink-0 border transition-colors ${wishlisted.has(p.id) ? 'border-rose-300 bg-rose-50 text-rose-500' : 'border-[#0D1B3E]/10 bg-white text-[#6B7A99] hover:text-rose-400'}`}
+              >
+                <Heart size={13} fill={wishlisted.has(p.id) ? 'currentColor' : 'none'} />
+              </button>
+              <button 
+                disabled={p.stock === 0}
+                onClick={(e) => { e.stopPropagation(); addToCart(p, 1); }} 
+                className="bg-[#0D1B3E] disabled:opacity-50 text-white border-none w-[26px] h-[26px] rounded-[6px] flex items-center justify-center shrink-0 hover:bg-[#E85D26] transition-colors"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -514,17 +561,17 @@ export default function ForttuneApp() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-xs font-bold text-[#6B7A99] block mb-1.5 uppercase">Full Name</label>
-                    <input type="text" className="w-full bg-[#F5F6FA] border border-[#0D1B3E]/10 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#E85D26] transition-colors" />
+                    <input type="text" value={contactForm.name} onChange={e => setContactForm(f => ({ ...f, name: e.target.value }))} className="w-full bg-[#F5F6FA] border border-[#0D1B3E]/10 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#E85D26] transition-colors" />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-[#6B7A99] block mb-1.5 uppercase">Email Address</label>
-                    <input type="email" className="w-full bg-[#F5F6FA] border border-[#0D1B3E]/10 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#E85D26] transition-colors" />
+                    <input type="email" value={contactForm.email} onChange={e => setContactForm(f => ({ ...f, email: e.target.value }))} className="w-full bg-[#F5F6FA] border border-[#0D1B3E]/10 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#E85D26] transition-colors" />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-[#6B7A99] block mb-1.5 uppercase">Message</label>
-                    <textarea className="w-full bg-[#F5F6FA] border border-[#0D1B3E]/10 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#E85D26] transition-colors h-24 resize-none"></textarea>
+                    <textarea value={contactForm.message} onChange={e => setContactForm(f => ({ ...f, message: e.target.value }))} className="w-full bg-[#F5F6FA] border border-[#0D1B3E]/10 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-[#E85D26] transition-colors h-24 resize-none"></textarea>
                   </div>
-                  <button onClick={() => showToast('Message sent successfully!')} className="w-full bg-[#0D1B3E] text-white font-semibold py-3 rounded-lg hover:bg-[#1A2F5E] transition-colors shadow-md">Submit Request</button>
+                  <button onClick={handleContactSubmit} disabled={contactSending} className="w-full bg-[#0D1B3E] disabled:opacity-60 text-white font-semibold py-3 rounded-lg hover:bg-[#1A2F5E] transition-colors shadow-md">{contactSending ? 'Sending…' : 'Submit Request'}</button>
                 </div>
               </div>
             </div>

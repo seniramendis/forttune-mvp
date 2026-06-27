@@ -1,12 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle, Users, X, Edit2, Trash2, Upload, Mail, Calendar, ShoppingBag } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
+  const router = useRouter();
+  const [adminUser, setAdminUser] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
   const [products, setProducts] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [customersLoading, setCustomersLoading] = useState(false);
   const [customersError, setCustomersError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('inventory');
@@ -20,9 +27,25 @@ export default function AdminDashboard() {
     name: '', brand: '', category: 'Laptops', price: '', stock: '', sku: '', spec: '', badge: '', image: ''
   });
 
+  // ── Fix #15: Auth guard — only ADMIN role may access this page ────────────
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('forttune_user');
+      if (!stored) { router.replace('/login'); return; }
+      const user = JSON.parse(stored);
+      if (user.role !== 'ADMIN') { router.replace('/'); return; }
+      setAdminUser(user);
+    } catch {
+      router.replace('/login');
+    } finally {
+      setAuthChecked(true);
+    }
+  }, []);
+
   const fetchInventory = async () => {
     try {
-      const res = await fetch('/api/products');
+      // Admin needs to see ALL products including archived — use a dedicated param
+      const res = await fetch('/api/products?admin=1');
       const data = await res.json();
       
       if (res.ok && Array.isArray(data)) {
@@ -59,14 +82,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchAllOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    try {
+      const res = await fetch('/api/orders/all');
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) setAllOrders(data);
+    } catch {}
+    finally { setOrdersLoading(false); }
+  }, []);
+
   useEffect(() => {
     fetchInventory();
   }, []);
 
   useEffect(() => {
-    if (activeTab === "customers") {
-      fetchCustomers();
-    }
+    if (activeTab === "customers") fetchCustomers();
+    if (activeTab === "orders" || activeTab === "overview") fetchAllOrders();
   }, [activeTab]);
 
   // Converts a device file into a Base64 string for direct database storage
@@ -147,22 +179,51 @@ export default function AdminDashboard() {
     }
   };
 
-  const salesData = [
-    { name: 'Mon', revenue: 450000 },
-    { name: 'Tue', revenue: 820000 },
-    { name: 'Wed', revenue: 310000 },
-    { name: 'Thu', revenue: 1050000 },
-    { name: 'Fri', revenue: 600000 },
-    { name: 'Sat', revenue: 1200000 },
-    { name: 'Sun', revenue: 400000 },
-  ];
+  // ── Fix #12: Derive real 7-day revenue from allOrders ────────────────────
+  const now = new Date();
+  const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const salesData = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(now.getDate() - (6 - i));
+    const dayStr = DAY_NAMES[d.getDay()];
+    const revenue = allOrders
+      .filter(o => {
+        const od = new Date(o.createdAt);
+        return od.getFullYear() === d.getFullYear() && od.getMonth() === d.getMonth() && od.getDate() === d.getDate();
+      })
+      .reduce((sum, o) => sum + (o.total || 0), 0);
+    return { name: dayStr, revenue };
+  });
 
-  const totalRevenue = salesData.reduce((acc, curr) => acc + curr.revenue, 0);
+  const totalRevenue = allOrders
+    .filter(o => {
+      const d = new Date(o.createdAt);
+      return (now.getTime() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
+    })
+    .reduce((sum, o) => sum + (o.total || 0), 0);
+
+  const weekOrderCount = allOrders.filter(o => {
+    const d = new Date(o.createdAt);
+    return (now.getTime() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
+  }).length;
+
   const validProductList = Array.isArray(products) ? products : [];
   
-  // Frontend Safety Filter: Keeps the raw creation stream open while dropping soft-deleted entries from the tables
+  // Frontend Safety Filter: keeps soft-deleted entries out of the inventory table
   const activeProducts = validProductList.filter(p => p && p.badge !== 'archived_hidden');
   const lowStockItems = activeProducts.filter(p => typeof p.stock === 'number' && p.stock < 5).length;
+
+  // Fix #15: Block render until auth is verified
+  if (!authChecked) return (
+    <div className="flex h-screen items-center justify-center bg-[#F5F6FA]">
+      <div className="w-8 h-8 border-2 border-[#E85D26] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+  if (!adminUser) return null;
+
+  // Fix #13: Admin name/initials derived from session
+  const adminName = adminUser.name || adminUser.email || 'Admin';
+  const adminInitials = adminName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
 
   return (
     <div className="flex h-screen w-full bg-[#F5F6FA] font-sans text-[#0D1B3E]">
@@ -180,7 +241,7 @@ export default function AdminDashboard() {
           <button onClick={() => setActiveTab('inventory')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'inventory' ? 'bg-[#E85D26]/10 text-[#E85D26]' : 'text-[#6B7A99] hover:bg-gray-50 hover:text-[#0D1B3E]'}`}>
             <Package size={18} /> Inventory {lowStockItems > 0 && <span className="ml-auto bg-red-100 text-red-600 py-0.5 px-2 rounded-full text-[10px]">{lowStockItems}</span>}
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-[#6B7A99] hover:bg-gray-50 hover:text-[#0D1B3E] transition-colors">
+          <button onClick={() => setActiveTab('orders')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'orders' ? 'bg-[#E85D26]/10 text-[#E85D26]' : 'text-[#6B7A99] hover:bg-gray-50 hover:text-[#0D1B3E]'}`}>
             <ShoppingCart size={18} /> Orders
           </button>
           <button onClick={() => setActiveTab('customers')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'customers' ? 'bg-[#E85D26]/10 text-[#E85D26]' : 'text-[#6B7A99] hover:bg-gray-50 hover:text-[#0D1B3E]'}`}>
@@ -194,8 +255,8 @@ export default function AdminDashboard() {
         <header className="h-[70px] bg-white border-b border-[#0D1B3E]/10 flex items-center justify-between px-8 shrink-0">
           <h1 className="text-xl font-semibold capitalize">{activeTab}</h1>
           <div className="flex items-center gap-4">
-            <div className="text-sm font-medium text-[#6B7A99]">Welcome, Senira</div>
-            <div className="w-9 h-9 rounded-full bg-[#0D1B3E] text-white flex items-center justify-center font-semibold text-sm">SM</div>
+            <div className="text-sm font-medium text-[#6B7A99]">Welcome, {adminName.split(' ')[0]}</div>
+            <div className="w-9 h-9 rounded-full bg-[#0D1B3E] text-white flex items-center justify-center font-semibold text-sm">{adminInitials}</div>
           </div>
         </header>
 
@@ -224,7 +285,7 @@ export default function AdminDashboard() {
                     <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><ShoppingCart size={20} /></div>
                   </div>
                   <div className="text-[#6B7A99] text-sm font-medium mb-1">Total Orders (Week)</div>
-                  <div className="text-2xl font-bold text-[#0D1B3E]">142</div>
+                  <div className="text-2xl font-bold text-[#0D1B3E]">{weekOrderCount}</div>
                 </div>
                 <div className="bg-white rounded-xl p-6 border border-[#0D1B3E]/10 shadow-sm">
                   <div className="flex justify-between items-start mb-4">
@@ -377,6 +438,71 @@ export default function AdminDashboard() {
                               <Calendar size={13} className="shrink-0" />
                               {new Date(c.createdAt).toLocaleDateString('en-LK', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── ORDERS TAB (Fix #11) ── */}
+          {activeTab === 'orders' && (
+            <div className="max-w-7xl">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-lg font-semibold text-[#0D1B3E]">All Orders</h2>
+                  <p className="text-sm text-[#6B7A99] mt-0.5">Web and POS orders across all customers</p>
+                </div>
+              </div>
+              {ordersLoading ? (
+                <div className="flex items-center justify-center py-20 text-[#6B7A99]">
+                  <div className="animate-spin w-6 h-6 border-2 border-[#E85D26] border-t-transparent rounded-full mr-3"></div>
+                  Loading orders…
+                </div>
+              ) : allOrders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <ShoppingCart size={40} className="text-[#6B7A99]/40 mb-3" />
+                  <p className="text-[#0D1B3E] font-medium">No orders yet</p>
+                  <p className="text-sm text-[#6B7A99] mt-1">Orders placed via web or POS will appear here.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl border border-[#0D1B3E]/10 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[#0D1B3E]/10 bg-[#F5F6FA]">
+                        <th className="text-left p-4 pl-6 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Order ID</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Customer</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Channel</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Payment</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Status</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Total</th>
+                        <th className="text-left p-4 text-xs font-semibold text-[#6B7A99] uppercase tracking-wide">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allOrders.map((o: any) => (
+                        <tr key={o.id} className="border-b last:border-0 border-[#0D1B3E]/5 hover:bg-gray-50/50">
+                          <td className="p-4 pl-6 font-mono text-xs text-[#6B7A99]">#{o.id.slice(-8).toUpperCase()}</td>
+                          <td className="p-4 text-[#0D1B3E] font-medium">{o.user?.name || o.user?.email || <span className="text-[#6B7A99] italic">Walk-in</span>}</td>
+                          <td className="p-4">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${o.isPosOrder ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                              {o.isPosOrder ? 'POS' : 'Web'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-[#6B7A99] text-xs">{o.paymentMethod}</td>
+                          <td className="p-4">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                              o.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                              o.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>{o.status}</span>
+                          </td>
+                          <td className="p-4 font-semibold text-[#0D1B3E]">Rs {o.total?.toLocaleString('en-LK')}</td>
+                          <td className="p-4 text-[#6B7A99] text-xs">
+                            {new Date(o.createdAt).toLocaleDateString('en-LK', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </td>
                         </tr>
                       ))}

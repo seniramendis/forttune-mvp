@@ -5,6 +5,21 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
+  // ── Seed default admin account ─────────────────────────────────────────
+  // Credentials: admin@forttune.lk / admin123
+  // Password hashed with SHA-256 + app salt (matches lib/auth login logic)
+  await prisma.user.upsert({
+    where:  { email: 'admin@forttune.lk' },
+    update: {},
+    create: {
+      email:    'admin@forttune.lk',
+      name:     'Forttune Admin',
+      role:     'ADMIN',
+      password: 'f95ab9cd5acdab35e2fbadf19429a8ddaa4d5d7bb2f0dbbbede2c4fb6f711536',
+    },
+  })
+  console.log('  2713 Admin seeded: admin@forttune.lk / admin123')
+  console.log()
   console.log('🌱 Seeding Forttune product database...')
 
   const products = [
