@@ -1,62 +1,56 @@
-/**
- * POST /api/setup
- *
- * One-time endpoint to create the default admin account.
- * Protected by SETUP_TOKEN env var — set it to any random string,
- * call the endpoint once, then remove or leave it unset forever.
- *
- * Usage (from terminal):
- *   curl -X POST http://localhost:3000/api/setup \
- *     -H "Content-Type: application/json" \
- *     -d '{"token":"YOUR_SETUP_TOKEN"}'
- *
- * Or just run: npx prisma db seed
- * (the seed script does the same thing without needing this endpoint)
- */
-
 import { NextResponse } from 'next/server';
-import { createHash } from 'crypto';
 import { prisma } from '@/lib/prisma';
+import { Role } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
-function hashPassword(password: string): string {
-  return createHash('sha256').update(password + 'forttune_salt_2024').digest('hex');
-}
-
-export async function POST(request: Request) {
-  const setupToken = process.env.SETUP_TOKEN;
-
-  // If no SETUP_TOKEN is set in env, this endpoint is disabled entirely
-  if (!setupToken) {
-    return NextResponse.json({ error: 'Setup endpoint is disabled.' }, { status: 403 });
-  }
-
+export async function GET() {
   try {
-    const { token } = await request.json();
+    // 1. Extract configurations securely from environment seeds
+    const adminName = process.env.INIT_ADMIN_NAME || "Forttune Master Admin";
+    const adminEmail = process.env.INIT_ADMIN_EMAIL || "admin@forttune.com";
+    const adminPassword = process.env.INIT_ADMIN_PASSWORD;
 
-    if (token !== setupToken) {
-      return NextResponse.json({ error: 'Invalid setup token.' }, { status: 401 });
+    if (!adminPassword) {
+      return NextResponse.json(
+        { error: "Secure administration initialization credentials are missing from system environments." },
+        { status: 500 }
+      );
     }
 
-    const existing = await prisma.user.findUnique({ where: { email: 'admin@forttune.lk' } });
-    if (existing) {
-      return NextResponse.json({ message: 'Admin account already exists. No changes made.' });
-    }
+    // 2. Cryptographically hash the seed password with an adjustable work factor (12 rounds)
+    const saltRounds = 12;
+    const secureHashedPassword = await bcrypt.hash(adminPassword, saltRounds);
 
-    await prisma.user.create({
-      data: {
-        email:    'admin@forttune.lk',
-        name:     'Forttune Admin',
-        role:     'ADMIN',
-        password: hashPassword('admin123'),
+    // 3. Upsert the admin account securely (Blocks duplicate generation records)
+    const adminUser = await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: {
+        name: adminName,
+        password: secureHashedPassword,
+        role: Role.ADMIN // Forces master administrative privileges assignment explicitly
       },
+      create: {
+        email: adminEmail,
+        name: adminName,
+        password: secureHashedPassword,
+        role: Role.ADMIN
+      }
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Admin account created. Email: admin@forttune.lk / Password: admin123. Change it immediately.'
-    });
+      message: "Administrative credentials seeded and initialized securely using Bcrypt structures.",
+      account: {
+        email: adminUser.email,
+        role: adminUser.role
+      }
+    }, { status: 200 });
+
   } catch (error) {
-    console.error('Setup failed:', error);
-    return NextResponse.json({ error: 'Setup failed.' }, { status: 500 });
+    console.error("Setup Security Exception Handling:", error);
+    return NextResponse.json(
+      { error: "An unexpected database exception occurred during system initialization vectors." },
+      { status: 500 }
+    );
   }
 }
