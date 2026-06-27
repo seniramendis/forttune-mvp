@@ -27,3 +27,20 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Hide scrollbars while preserving scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* POS-specific overrides */
+@media (prefers-color-scheme: dark) {
+  .pos-root {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+  }
+}
