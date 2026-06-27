@@ -6,19 +6,21 @@ const prisma = new PrismaClient({ adapter })
 
 async function main() {
   // ── Seed default admin account ─────────────────────────────────────────
-  // Credentials: admin@forttune.lk / admin123
-  // Password hashed with SHA-256 + app salt (matches lib/auth login logic)
+  // Credentials: admin@forttune.com / Admin@123!
+  // FIX: Password MUST be a bcrypt hash — login uses bcrypt.compare().
+  // The old seed stored a raw SHA-256 hex string which bcrypt.compare() always rejects,
+  // making it impossible to ever log in. Hash below = bcrypt('Admin@123!', rounds=12).
   await prisma.user.upsert({
-    where:  { email: 'admin@forttune.lk' },
+    where:  { email: 'admin@forttune.com' },
     update: {},
     create: {
-      email:    'admin@forttune.lk',
+      email:    'admin@forttune.com',
       name:     'Forttune Admin',
       role:     'ADMIN',
-      password: 'f95ab9cd5acdab35e2fbadf19429a8ddaa4d5d7bb2f0dbbbede2c4fb6f711536',
+      password: '$2b$12$ywAqIzQ7OnvdFlLAQFREH.6.8k4BPr7k5PhdCRJ3rhVWKl5zz0KBW',
     },
   })
-  console.log('  2713 Admin seeded: admin@forttune.lk / admin123')
+  console.log('  ✓ Admin seeded: admin@forttune.com / Admin@123!')
   console.log()
   console.log('🌱 Seeding Forttune product database...')
 

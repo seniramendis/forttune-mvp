@@ -32,7 +32,9 @@ export default function LoginPage() {
       }));
       
       // Navigate straight to your administration node layout grid path
-      window.location.href = '/admin';
+      // FIX: Use server-provided redirect path based on actual role
+      // ADMIN → /admin, CASHIER → /pos, CUSTOMER → /
+      window.location.href = data.redirectTo ?? '/';
     } catch (err: any) {
       setError(err.message);
     } finally {
