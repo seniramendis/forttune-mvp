@@ -134,11 +134,24 @@ export default function ForttuneApp() {
       return;
     }
     setContactSending(true);
-    console.log('Contact inquiry:', contactForm);
-    await new Promise(r => setTimeout(r, 800));
-    setContactSending(false);
-    setContactForm({ name: '', email: '', message: '' });
-    showToast("Message sent! We'll get back to you within 24 hours.");
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactForm),
+      });
+      if (res.ok) {
+        setContactForm({ name: '', email: '', message: '' });
+        showToast("Message sent! We'll get back to you within 24 hours.");
+      } else {
+        const data = await res.json();
+        showToast(data.error || 'Something went wrong. Please try again.');
+      }
+    } catch {
+      showToast('Could not send message. Please check your connection.');
+    } finally {
+      setContactSending(false);
+    }
   };
 
   const showToast = (msg: string) => setToastMsg(msg);

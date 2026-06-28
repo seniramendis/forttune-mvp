@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle,
   Users, X, Edit2, Trash2, Upload, Mail, Calendar, ShoppingBag,
-  ArrowUpRight, ArrowDownRight, Cpu, DollarSign, Activity
+  ArrowUpRight, ArrowDownRight, Cpu, DollarSign, Activity, MessageCircle, CheckCheck, Trash
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -117,6 +117,9 @@ export default function AdminDashboard() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [customersLoading, setCustomersLoading] = useState(false);
   const [customersError, setCustomersError] = useState<string | null>(null);
+  const [messages, setMessages]     = useState<any[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [expandedMsg, setExpandedMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab]   = useState('overview');
   const [apiError, setApiError]     = useState<string | null>(null);
 
@@ -171,10 +174,35 @@ export default function AdminDashboard() {
     finally { setOrdersLoading(false); }
   }, []);
 
+  const fetchMessages = useCallback(async () => {
+    setMessagesLoading(true);
+    try {
+      const res  = await fetch('/api/contact');
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) setMessages(data);
+    } catch {}
+    finally { setMessagesLoading(false); }
+  }, []);
+
+  const markRead = async (id: string, read: boolean) => {
+    await fetch(`/api/contact?id=${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ read }),
+    });
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, read } : m));
+  };
+
+  const deleteMessage = async (id: string) => {
+    if (!confirm('Delete this message?')) return;
+    await fetch(`/api/contact?id=${id}`, { method: 'DELETE' });
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
+
   useEffect(() => { fetchInventory(); }, []);
   useEffect(() => {
     if (activeTab === 'customers') fetchCustomers();
     if (activeTab === 'orders' || activeTab === 'overview') fetchAllOrders();
+    if (activeTab === 'messages') fetchMessages();
   }, [activeTab]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -314,11 +342,14 @@ export default function AdminDashboard() {
   const adminInitials = adminName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
 
   /* ─── nav items ──────────────────────────────────────────────────── */
+  const unreadCount = messages.filter(m => !m.read).length;
+
   const navItems = [
     { key: 'overview',   Icon: LayoutDashboard, label: 'Overview' },
     { key: 'inventory',  Icon: Package,          label: 'Inventory', badge: lowStockItems > 0 ? String(lowStockItems) : null, badgeColor: '#EF4444' },
     { key: 'orders',     Icon: ShoppingCart,     label: 'Orders' },
     { key: 'customers',  Icon: Users,            label: 'Customers', badge: customers.length > 0 ? String(customers.length) : null, badgeColor: NAVY },
+    { key: 'messages',   Icon: MessageCircle,    label: 'Messages', badge: unreadCount > 0 ? String(unreadCount) : null, badgeColor: BRAND },
   ];
 
   return (
@@ -382,11 +413,12 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1200 }}>
 
               {/* KPI row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
                 <StatCard icon={DollarSign}   label="7-Day Revenue"      value={`Rs ${totalRevenue.toLocaleString('en-LK')}`}  color="#10B981" trend="+12.5%" trendUp={true} />
                 <StatCard icon={ShoppingCart} label="Orders This Week"   value={weekOrderCount}                                 color="#3B82F6" />
                 <StatCard icon={Activity}     label="Avg. Order Value"   value={`Rs ${Math.round(avgOrderValue).toLocaleString('en-LK')}`} color={BRAND} />
                 <StatCard icon={AlertCircle}  label="Low Stock Alerts"   value={`${lowStockItems} Items`}                      color="#EF4444" sub="Items below 5 units" />
+                <StatCard icon={MessageCircle} label="Unread Messages"   value={unreadCount}                                       color="#E85D26" sub="From contact form" />
               </div>
 
               {/* Revenue area chart + Order completion radial */}
@@ -715,6 +747,112 @@ export default function AdminDashboard() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+          )}
+
+
+          {/* ══════════════════════════════════════════════════════════ */}
+          {/* MESSAGES TAB                                              */}
+          {/* ══════════════════════════════════════════════════════════ */}
+          {activeTab === 'messages' && (
+            <div style={{ maxWidth: 860 }}>
+              <div style={{ marginBottom: 20 }}>
+                <h2 style={{ fontSize: 17, fontWeight: 600, margin: 0 }}>Customer Messages</h2>
+                <p style={{ fontSize: 13, color: '#6B7A99', margin: '4px 0 0' }}>Contact form submissions from your website</p>
+              </div>
+
+              {messagesLoading ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0', color: '#6B7A99' }}>
+                  <div style={{ width: 24, height: 24, border: '2px solid #E85D26', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginRight: 10 }} />
+                  Loading messages…
+                </div>
+              ) : messages.length === 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 0', textAlign: 'center' }}>
+                  <MessageCircle size={36} color="#6B7A9966" />
+                  <p style={{ fontWeight: 600, marginTop: 12, color: '#0D1B3E' }}>No messages yet</p>
+                  <p style={{ fontSize: 13, color: '#6B7A99' }}>Messages submitted via the contact form will appear here.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {messages.map((msg: any) => {
+                    const isExpanded = expandedMsg === msg.id;
+                    return (
+                      <div key={msg.id} style={{
+                        background: msg.read ? '#ffffff' : '#FFF7F4',
+                        border: `1px solid ${msg.read ? '#0D1B3E1A' : '#E85D2640'}`,
+                        borderRadius: 14, overflow: 'hidden',
+                        boxShadow: msg.read ? 'none' : '0 2px 8px rgba(232,93,38,0.07)',
+                        transition: 'all 0.2s',
+                      }}>
+                        {/* Header row */}
+                        <div
+                          onClick={() => {
+                            setExpandedMsg(isExpanded ? null : msg.id);
+                            if (!msg.read) markRead(msg.id, true);
+                          }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', cursor: 'pointer' }}
+                        >
+                          {/* Avatar */}
+                          <div style={{
+                            width: 40, height: 40, borderRadius: '50%',
+                            background: msg.read ? '#0D1B3E' : '#E85D26',
+                            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 15, fontWeight: 700, flexShrink: 0
+                          }}>{msg.name.charAt(0).toUpperCase()}</div>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontWeight: 600, fontSize: 14, color: '#0D1B3E' }}>{msg.name}</span>
+                              {!msg.read && (
+                                <span style={{ background: '#E85D26', color: '#fff', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 20, letterSpacing: '0.05em' }}>NEW</span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: 12, color: '#6B7A99', marginTop: 1 }}>{msg.email}</div>
+                          </div>
+
+                          <div style={{ fontSize: 11, color: '#6B7A99', textAlign: 'right', flexShrink: 0 }}>
+                            {new Date(msg.createdAt).toLocaleDateString('en-LK', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            <br />
+                            {new Date(msg.createdAt).toLocaleTimeString('en-LK', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+
+                          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                            <button
+                              onClick={e => { e.stopPropagation(); markRead(msg.id, !msg.read); }}
+                              title={msg.read ? 'Mark unread' : 'Mark read'}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: msg.read ? '#6B7A99' : '#10B981', borderRadius: 6 }}
+                            >
+                              <CheckCheck size={16} />
+                            </button>
+                            <button
+                              onClick={e => { e.stopPropagation(); deleteMessage(msg.id); }}
+                              title="Delete"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px', color: '#6B7A99', borderRadius: 6 }}
+                            >
+                              <Trash size={15} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Expanded message body */}
+                        {isExpanded && (
+                          <div style={{ padding: '0 18px 18px 72px', borderTop: '1px solid #0D1B3E0D' }}>
+                            <div style={{ background: '#F5F6FA', borderRadius: 10, padding: '14px 16px', marginTop: 12, fontSize: 14, color: '#0D1B3E', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                              {msg.message}
+                            </div>
+                            <a
+                              href={`mailto:${msg.email}?subject=Re: Your enquiry to Forttune`}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, fontSize: 12, fontWeight: 600, color: '#E85D26', textDecoration: 'none' }}
+                            >
+                              <Mail size={13} /> Reply via email
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

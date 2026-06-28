@@ -77,3 +77,12 @@ model OrderItem {
   quantity  Int
   price     Float // Price at the time of purchase
 }
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
