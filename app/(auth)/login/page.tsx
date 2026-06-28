@@ -49,7 +49,7 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           <img
-            src="https://res.cloudinary.com/dukv2otyn/image/upload/v1781957501/874b574032c781f9eb100c851006a78d_crop1681211041_sxrilv.png"
+            src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp"
             alt="Forttune Channels"
             className="h-10 object-contain"
           />
@@ -85,7 +85,7 @@ export default function LoginPage() {
           {/* Mobile logo */}
           <div className="lg:hidden mb-8 flex justify-center">
             <img
-              src="https://res.cloudinary.com/dukv2otyn/image/upload/v1781957501/874b574032c781f9eb100c851006a78d_crop1681211041_sxrilv.png"
+              src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp"
               alt="Forttune Channels"
               className="h-9 object-contain"
             />

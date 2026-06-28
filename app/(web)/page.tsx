@@ -1,5 +1,6 @@
 "use client";
 
+import Footer from '@/components/Footer';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -435,7 +436,7 @@ export default function ForttuneApp() {
           {/* LOGO */}
           <div className="flex items-center cursor-pointer gap-2.5 shrink-0" onClick={() => setPage('home')}>
             <img
-              src="https://res.cloudinary.com/dukv2otyn/image/upload/v1781957501/874b574032c781f9eb100c851006a78d_crop1681211041_sxrilv.png"
+              src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp"
               alt="Forttune Channels"
               className="h-8 object-contain"
             />
@@ -950,6 +951,9 @@ export default function ForttuneApp() {
           {toastMsg}
         </div>
       )}
+
+      {/* FOOTER */}
+      <Footer />
     </div>
   );
 }

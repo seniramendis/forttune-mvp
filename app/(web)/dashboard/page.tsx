@@ -1,5 +1,7 @@
 'use client'
 
+import Footer from '@/components/Footer'
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -292,7 +294,7 @@ export default function DashboardPage() {
             <Menu size={18} className="text-[#6B7A99]" />
           </button>
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#E85D26] rounded-lg flex items-center justify-center font-bold text-white text-sm">F</div>
+            <img src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp" alt="Forttune" className="h-7 object-contain" />
             <span className="font-semibold text-[#0D1B3E] text-base tracking-wide">Forttune</span>
           </Link>
         </div>
@@ -658,6 +660,9 @@ export default function DashboardPage() {
           </button>
         </div>
       </div>
+
+      {/* FOOTER */}
+      <Footer />
 
       {/* Bottom padding for mobile nav */}
       <div className="h-20 lg:hidden" />

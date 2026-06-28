@@ -361,7 +361,7 @@ export default function PosTerminal() {
         {/* Header */}
         <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-5 shrink-0 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center font-extrabold text-white text-sm shadow-sm">F</div>
+            <img src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp" alt="Forttune" className="h-7 object-contain" />
             <div>
               <span className="font-bold text-slate-800 text-sm leading-none block">Forttune POS</span>
               <span className="text-[11px] text-slate-500 font-medium">Terminal 01 · {cashierName.split(' ')[0]}</span>
