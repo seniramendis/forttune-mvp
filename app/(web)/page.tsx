@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, Heart,
   Laptop, Monitor, Wifi, Printer, Server, Database, Mouse, 
@@ -39,6 +40,11 @@ export default function ForttuneApp() {
   const [activeCat, setActiveCat] = useState('All');
   const [search, setSearch] = useState('');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // --- Add-to-cart "fly" animation state ---
+  const cartIconRef = useRef<HTMLButtonElement | null>(null);
+  const [flyingItems, setFlyingItems] = useState<{ id: number; x1: number; y1: number; x2: number; y2: number; image?: string }[]>([]);
+  const [cartBump, setCartBump] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -162,6 +168,94 @@ export default function ForttuneApp() {
     setCart(prev => prev.filter(x => x.id !== id));
   };
 
+  // Launches a small icon that arcs from the clicked button to the header cart icon
+  const triggerFlyToCart = (originEl: HTMLElement | null, image?: string) => {
+    if (!originEl || !cartIconRef.current) return;
+    const startRect = originEl.getBoundingClientRect();
+    const endRect = cartIconRef.current.getBoundingClientRect();
+    const id = Date.now() + Math.random();
+    setFlyingItems(prev => [...prev, {
+      id,
+      x1: startRect.left + startRect.width / 2,
+      y1: startRect.top + startRect.height / 2,
+      x2: endRect.left + endRect.width / 2,
+      y2: endRect.top + endRect.height / 2,
+      image,
+    }]);
+  };
+
+  // Reusable Add to Cart button with morph, ripple, and fly-to-cart effects
+  const AddToCartButton = ({ product, quantity = 1, image, disabled, variant = 'card' }: { product: any; quantity?: number; image?: string; disabled?: boolean; variant?: 'card' | 'pdp' }) => {
+    const [status, setStatus] = useState<'idle' | 'added'>('idle');
+    const btnRef = useRef<HTMLButtonElement | null>(null);
+    const isCard = variant === 'card';
+
+    const handleClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (disabled || status === 'added') return;
+      addToCart(product, quantity);
+      triggerFlyToCart(btnRef.current, image);
+      setStatus('added');
+      setTimeout(() => setStatus('idle'), 1100);
+    };
+
+    return (
+      <motion.button
+        ref={btnRef}
+        disabled={disabled}
+        onClick={handleClick}
+        whileTap={!disabled ? { scale: 0.93 } : undefined}
+        animate={status === 'added' ? { scale: [1, 1.06, 1] } : { scale: 1 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className={
+          isCard
+            ? "relative flex-1 flex items-center justify-center gap-1.5 overflow-hidden bg-[#E85D26] hover:bg-[#f47a4a] text-white text-[11px] font-semibold py-2 rounded-lg transition-colors disabled:opacity-50"
+            : "relative flex-1 bg-[#E85D26] disabled:opacity-50 text-white rounded-xl font-semibold text-sm hover:bg-[#F47A4A] transition-colors shadow-md shadow-[#E85D26]/20 flex items-center justify-center gap-2 overflow-hidden"
+        }
+      >
+        {/* ripple burst on success */}
+        <AnimatePresence>
+          {status === 'added' && (
+            <motion.span
+              key="ripple"
+              initial={{ scale: 0, opacity: 0.55 }}
+              animate={{ scale: 2.8, opacity: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.55)', borderRadius: '999px', pointerEvents: 'none' }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* icon + label morph */}
+        <AnimatePresence mode="wait" initial={false}>
+          {status === 'added' ? (
+            <motion.span
+              key="check"
+              initial={{ scale: 0, rotate: -45, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+              className="flex items-center gap-1.5 relative z-10"
+            >
+              <CheckCircle size={isCard ? 13 : 16} /> {isCard ? 'Added!' : 'Added to Cart'}
+            </motion.span>
+          ) : (
+            <motion.span
+              key="cart"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+              className="flex items-center gap-1.5 relative z-10"
+            >
+              <ShoppingCart size={isCard ? 13 : 16} /> {disabled ? 'Out of Stock' : (isCard ? 'Add to cart' : 'Add to Cart')}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.button>
+    );
+  };
+
   const handleCategoryClick = (cat: string) => {
     setActiveCat(cat);
     setPage('products');
@@ -265,12 +359,7 @@ export default function ForttuneApp() {
           {/* HOVER OVERLAY — slides up from bottom */}
           {p.stock > 0 && (
             <div className="absolute bottom-0 left-0 right-0 flex gap-2 px-3 pb-3 pt-8 bg-gradient-to-t from-[#0D1B3E]/75 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
-              <button
-                onClick={(e) => { e.stopPropagation(); addToCart(p, 1); }}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-[#E85D26] hover:bg-[#f47a4a] text-white text-[11px] font-semibold py-2 rounded-lg transition-colors"
-              >
-                <ShoppingCart size={13} /> Add to cart
-              </button>
+              <AddToCartButton product={p} quantity={1} image={p.image} variant="card" />
               <button
                 onClick={(e) => toggleWishlist(p, e)}
                 className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${wishlisted.has(p.id) ? 'bg-rose-500 border-rose-500 text-white' : 'bg-white/15 border-white/30 text-white hover:bg-white/28'}`}
@@ -300,6 +389,44 @@ export default function ForttuneApp() {
 
   return (
     <div className="bg-[#F5F6FA] font-sans text-[14px] text-[#0D1B3E] min-h-screen relative">
+
+      {/* FLYING ADD-TO-CART ITEMS */}
+      <AnimatePresence>
+        {flyingItems.map(item => {
+          const arcLift = Math.min(160, Math.max(60, Math.abs(item.x2 - item.x1) * 0.35));
+          return (
+            <motion.div
+              key={item.id}
+              initial={{ x: item.x1 - 16, y: item.y1 - 16, scale: 1, opacity: 1, rotate: 0 }}
+              animate={{
+                x: [item.x1 - 16, (item.x1 + item.x2) / 2 - 16, item.x2 - 16],
+                y: [item.y1 - 16, Math.min(item.y1, item.y2) - arcLift, item.y2 - 16],
+                scale: [1, 1.25, 0.25],
+                opacity: [1, 1, 0],
+                rotate: [0, 180, 360],
+              }}
+              transition={{ duration: 0.7, ease: 'easeInOut', times: [0, 0.5, 1] }}
+              onAnimationComplete={() => {
+                setFlyingItems(prev => prev.filter(f => f.id !== item.id));
+                setCartBump(true);
+                setTimeout(() => setCartBump(false), 380);
+              }}
+              style={{
+                position: 'fixed', top: 0, left: 0, zIndex: 100, pointerEvents: 'none',
+                width: 32, height: 32, borderRadius: '50%', overflow: 'hidden',
+                boxShadow: '0 6px 18px rgba(232,93,38,0.45)',
+              }}
+              className="bg-white border-2 border-[#E85D26] flex items-center justify-center"
+            >
+              {item.image ? (
+                <img src={item.image} className="w-full h-full object-cover mix-blend-multiply" />
+              ) : (
+                <ShoppingCart size={14} className="text-[#E85D26]" />
+              )}
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
       
       {/* NAVBAR */}
       <nav className="bg-white border-b border-[#0D1B3E]/8 h-[60px] flex items-center justify-between px-5 md:px-10 sticky top-0 z-40 shadow-sm">
@@ -361,13 +488,30 @@ export default function ForttuneApp() {
             </div>
           )}
 
-          <button onClick={() => setIsCartOpen(true)} className="bg-[#0D1B3E] hover:bg-[#1A2F5E] transition-colors text-white px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer flex items-center gap-2">
+          <motion.button
+            ref={cartIconRef}
+            onClick={() => setIsCartOpen(true)}
+            animate={cartBump ? { scale: [1, 1.3, 0.92, 1.08, 1] } : { scale: 1 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+            className="bg-[#0D1B3E] hover:bg-[#1A2F5E] transition-colors text-white px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer flex items-center gap-2"
+          >
             <ShoppingCart size={15} />
             <span>Cart</span>
-            {cartCount > 0 && (
-              <span className="bg-[#E85D26] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{cartCount}</span>
-            )}
-          </button>
+            <AnimatePresence mode="wait">
+              {cartCount > 0 && (
+                <motion.span
+                  key={cartCount}
+                  initial={{ scale: 0, opacity: 0, y: -6 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 18 }}
+                  className="bg-[#E85D26] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center"
+                >
+                  {cartCount}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
         </div>
       </nav>
 
@@ -464,13 +608,13 @@ export default function ForttuneApp() {
                       <span className="font-bold text-[15px]">{pdpQty}</span>
                       <button onClick={() => setPdpQty(Math.min(selectedProduct.stock, pdpQty + 1))} className="text-[#6B7A99] hover:text-[#E85D26]"><Plus size={16} /></button>
                     </div>
-                    <button 
+                    <AddToCartButton
+                      product={selectedProduct}
+                      quantity={pdpQty}
+                      image={selectedProduct.image}
                       disabled={selectedProduct.stock === 0}
-                      onClick={() => addToCart(selectedProduct, pdpQty)} 
-                      className="flex-1 bg-[#E85D26] disabled:opacity-50 text-white rounded-xl font-semibold text-sm hover:bg-[#F47A4A] transition-colors shadow-md shadow-[#E85D26]/20 flex items-center justify-center gap-2"
-                    >
-                      <ShoppingCart size={16} /> {selectedProduct.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                    </button>
+                      variant="pdp"
+                    />
                   </div>
                   
                   <a 
