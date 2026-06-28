@@ -5,7 +5,7 @@ import {
   Search, ScanBarcode, Trash2, CreditCard, Banknote, LogOut, Plus, Minus,
   CheckCircle, ShoppingCart, Package, Clock, X, Tag, Percent, RefreshCw,
   Grid3X3, List, AlertCircle, Smartphone, Printer, RotateCcw, ZapIcon,
-  TrendingUp, BarChart2, Users, Activity, ChevronRight, Star, ArrowUpRight
+  TrendingUp, BarChart2, Users, Activity, ChevronRight, Star, ArrowUpRight, Menu
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -54,6 +54,7 @@ export default function PosTerminal() {
   const [todaySales, setTodaySales] = useState<{ total: number; count: number; items: number; topProduct: string }>({ total: 0, count: 0, items: 0, topProduct: '—' });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [mobileCartOpen, setMobileCartOpen] = useState(false);
 
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -213,7 +214,7 @@ export default function PosTerminal() {
 
   // ═══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="flex h-screen w-full bg-slate-100 font-sans overflow-hidden select-none">
+    <div className="flex flex-col md:flex-row h-screen w-full bg-slate-100 font-sans overflow-hidden select-none relative">
 
       {/* ── TOAST ──────────────────────────────────────────────────────────── */}
       {notification && (
@@ -355,7 +356,7 @@ export default function PosTerminal() {
       {/* ════════════════════════════════════════════════════════════════════
           LEFT PANEL — Product Browser
       ═════════════════════════════════════════════════════════════════════ */}
-      <div className="flex-1 flex flex-col h-full min-w-0">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
 
         {/* Header */}
         <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-5 shrink-0 shadow-sm">
@@ -507,8 +508,17 @@ export default function PosTerminal() {
       {/* ════════════════════════════════════════════════════════════════════
           RIGHT PANEL — Cart / Analytics
       ═════════════════════════════════════════════════════════════════════ */}
-      <div className="w-[390px] bg-white flex flex-col h-full shrink-0 border-l border-slate-200 shadow-xl">
+      {/* Mobile cart overlay backdrop */}
+      {mobileCartOpen && (
+        <div className="md:hidden fixed inset-0 bg-black/40 z-30" onClick={() => setMobileCartOpen(false)} />
+      )}
+      <div className={`${mobileCartOpen ? "fixed right-0 top-0 bottom-0 z-40 flex w-[340px] max-w-[90vw]" : "hidden"} md:relative md:flex md:w-[390px] bg-white flex-col md:h-full shrink-0 border-l border-slate-200 shadow-xl`}>
 
+        {/* Mobile close button */}
+        <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-slate-200 shrink-0">
+          <span className="text-sm font-bold text-slate-700">Order / Analytics</span>
+          <button onClick={() => setMobileCartOpen(false)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500"><X size={18} /></button>
+        </div>
         {/* Tab bar */}
         <div className="flex border-b border-slate-100 shrink-0">
           {(['cart', 'analytics'] as SidePanel[]).map(tab => (
@@ -729,6 +739,25 @@ export default function PosTerminal() {
         )}
 
       </div>
+      {/* Mobile bottom bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-30 flex items-center justify-between px-4 py-2.5 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 text-slate-600">
+            <ShoppingCart size={16} />
+            <span className="text-sm font-bold text-slate-800">{cartQty > 0 ? `${cartQty} item${cartQty !== 1 ? 's' : ''}` : 'Empty cart'}</span>
+          </div>
+          {grandTotal > 0 && <span className="text-sm font-extrabold text-orange-600">{fmt(grandTotal)}</span>}
+        </div>
+        <button
+          onClick={() => setMobileCartOpen(true)}
+          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+        >
+          <ShoppingCart size={15} /> View Cart
+          {cartQty > 0 && <span className="bg-white text-orange-600 text-xs font-black w-5 h-5 rounded-full flex items-center justify-center">{cartQty}</span>}
+        </button>
+      </div>
+      {/* Mobile bottom padding */}
+      <div className="md:hidden h-16" />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Package, ShoppingCart, TrendingUp, AlertCircle,
   Users, X, Edit2, Trash2, Upload, Mail, Calendar, ShoppingBag,
-  ArrowUpRight, ArrowDownRight, Cpu, DollarSign, Activity, MessageCircle, CheckCheck, Trash
+  ArrowUpRight, ArrowDownRight, Cpu, DollarSign, Activity, MessageCircle, CheckCheck, Trash, Menu
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -52,9 +52,9 @@ function StatCard({ icon, label, value, sub, trend, trendUp, color }: any) {
   const Icon = icon;
   return (
     <div style={{
-      background: WHITE, borderRadius: 16, padding: '24px',
+      background: WHITE, borderRadius: 16, padding: '16px',
       border: `1px solid ${NAVY}1A`, boxShadow: '0 2px 8px rgba(13,27,62,0.05)',
-      display: 'flex', flexDirection: 'column', gap: 12
+      display: 'flex', flexDirection: 'column', gap: 10
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{
@@ -77,7 +77,7 @@ function StatCard({ icon, label, value, sub, trend, trendUp, color }: any) {
       </div>
       <div>
         <div style={{ fontSize: 13, color: MUTED, fontWeight: 500, marginBottom: 4 }}>{label}</div>
-        <div style={{ fontSize: 26, fontWeight: 700, color: NAVY, letterSpacing: '-0.5px' }}>{value}</div>
+        <div style={{ fontSize: 22, fontWeight: 700, color: NAVY, letterSpacing: '-0.5px' }}>{value}</div>
         {sub && <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{sub}</div>}
       </div>
     </div>
@@ -121,6 +121,7 @@ export default function AdminDashboard() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [expandedMsg, setExpandedMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab]   = useState('overview');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [apiError, setApiError]     = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen]     = useState(false);
@@ -353,10 +354,18 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100%', background: BG, fontFamily: 'Inter, system-ui, sans-serif', color: NAVY }}>
+    <div style={{ display: 'flex', height: '100vh', width: '100%', background: BG, fontFamily: 'Inter, system-ui, sans-serif', color: NAVY }} className="relative">
+
+      {/* ── MOBILE SIDEBAR BACKDROP ── */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
 
       {/* ── SIDEBAR ─────────────────────────────────────────────────── */}
-      <div style={{ width: 260, background: WHITE, borderRight: `1px solid ${NAVY}1A`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+      <div className={`${mobileSidebarOpen ? 'fixed inset-y-0 left-0 z-50' : 'hidden'} lg:flex lg:relative lg:z-auto`} style={{ width: 260, background: WHITE, borderRight: `1px solid ${NAVY}1A`, display: mobileSidebarOpen ? 'flex' : undefined, flexDirection: 'column', flexShrink: 0 }}>
         <div style={{ height: 70, display: 'flex', alignItems: 'center', padding: '0 24px', borderBottom: `1px solid ${NAVY}1A` }}>
           <div style={{ width: 32, height: 32, background: BRAND, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: WHITE, marginRight: 10 }}>F</div>
           <span style={{ fontWeight: 600, fontSize: 16, letterSpacing: '-0.2px' }}>Forttune Admin</span>
@@ -390,15 +399,18 @@ export default function AdminDashboard() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* header */}
-        <header style={{ height: 70, background: WHITE, borderBottom: `1px solid ${NAVY}1A`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', flexShrink: 0 }}>
-          <h1 style={{ fontSize: 18, fontWeight: 600, textTransform: 'capitalize', margin: 0 }}>{activeTab}</h1>
+        <header style={{ height: 70, background: WHITE, borderBottom: `1px solid ${NAVY}1A`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button className="lg:hidden p-2 hover:bg-gray-100 rounded-lg" onClick={() => setMobileSidebarOpen(true)}><Menu size={20} color={MUTED} /></button>
+            <h1 style={{ fontSize: 18, fontWeight: 600, textTransform: 'capitalize', margin: 0 }}>{activeTab}</h1>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ fontSize: 13, color: MUTED, fontWeight: 500 }}>Welcome, {adminName.split(' ')[0]}</span>
             <div style={{ width: 36, height: 36, borderRadius: '50%', background: NAVY, color: WHITE, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>{adminInitials}</div>
           </div>
         </header>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: 32 }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 16 }} className="sm:!p-6 lg:!p-8">
 
           {apiError && (
             <div style={{ marginBottom: 20, padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: 10, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -413,7 +425,7 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1200 }}>
 
               {/* KPI row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
                 <StatCard icon={DollarSign}   label="7-Day Revenue"      value={`Rs ${totalRevenue.toLocaleString('en-LK')}`}  color="#10B981" trend="+12.5%" trendUp={true} />
                 <StatCard icon={ShoppingCart} label="Orders This Week"   value={weekOrderCount}                                 color="#3B82F6" />
                 <StatCard icon={Activity}     label="Avg. Order Value"   value={`Rs ${Math.round(avgOrderValue).toLocaleString('en-LK')}`} color={BRAND} />
@@ -422,7 +434,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Revenue area chart + Order completion radial */}
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <ChartCard title="Revenue Trend" subtitle="Web vs POS — last 7 days">
                   <div style={{ height: 240 }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -460,7 +472,7 @@ export default function AdminDashboard() {
                         </RadialBarChart>
                       </ResponsiveContainer>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, width: '100%' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, width: '100%' }} className="!grid-cols-2 sm:!grid-cols-3">
                       {Object.entries(statusMap).map(([status, count]) => (
                         <div key={status} style={{ textAlign: 'center', padding: '8px 4px', background: BG, borderRadius: 8 }}>
                           <div style={{ fontSize: 16, fontWeight: 700, color: status === 'COMPLETED' ? '#10B981' : status === 'CANCELLED' ? '#EF4444' : '#F59E0B' }}>{count}</div>
@@ -473,7 +485,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Category pie + Channel donut + Payment radial */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
                 <ChartCard title="Inventory by Category" subtitle="Active SKUs per category">
                   <div style={{ height: 220 }}>
@@ -518,7 +530,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Top products + customer signups line chart */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <ChartCard title="Top 5 Products by Revenue" subtitle="Based on all-time sales">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {topProducts.length === 0 ? (
@@ -574,7 +586,7 @@ export default function AdminDashboard() {
                 <button onClick={openAddModal} style={{ background: NAVY, color: WHITE, padding: '8px 16px', borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>+ Add Product</button>
               </div>
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <div className="overflow-x-auto"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 600 }}>
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${NAVY}0F`, background: WHITE }}>
                       {['SKU','Product Name','Category','Price (LKR)','Stock','Actions'].map(h => (
@@ -608,6 +620,7 @@ export default function AdminDashboard() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           )}
@@ -644,7 +657,7 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <div style={{ background: WHITE, borderRadius: 16, border: `1px solid ${NAVY}1A`, overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <div className="overflow-x-auto"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 600 }}>
                     <thead>
                       <tr style={{ borderBottom: `1px solid ${NAVY}0F`, background: BG }}>
                         {['Customer','Email','Orders','Total Spent','Last Order','Joined'].map(h => (
@@ -690,6 +703,7 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                 </div>
+                </div>
               )}
             </div>
           )}
@@ -716,7 +730,7 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <div style={{ background: WHITE, borderRadius: 16, border: `1px solid ${NAVY}1A`, overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <div className="overflow-x-auto"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 600 }}>
                     <thead>
                       <tr style={{ borderBottom: `1px solid ${NAVY}0F`, background: BG }}>
                         {['Order ID','Customer','Channel','Payment','Status','Total','Date'].map(h => (
@@ -747,6 +761,7 @@ export default function AdminDashboard() {
                       ))}
                     </tbody>
                   </table>
+                </div>
                 </div>
               )}
             </div>
@@ -870,7 +885,7 @@ export default function AdminDashboard() {
               <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED }}><X size={20} /></button>
             </div>
             <form onSubmit={handleFormSubmit} style={{ padding: 24 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {[
                   { label: 'Product Name', key: 'name', colSpan: 2, type: 'text', required: true },
                   { label: 'Brand', key: 'brand', type: 'text', required: true },
