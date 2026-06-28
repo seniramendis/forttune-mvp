@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { withDbRetry } from '@/lib/db-retry';
 import { broadcastReload } from './stream/route';
 
 export const dynamic = 'force-dynamic';
@@ -10,11 +11,13 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const isAdmin = searchParams.get('admin') === '1';
 
-    const products = await prisma.product.findMany({
-      where: isAdmin ? undefined : { badge: { not: 'archived_hidden' } },
-      orderBy: { createdAt: 'desc' }
-    });
-    
+    const products = await withDbRetry(() =>
+      prisma.product.findMany({
+        where: isAdmin ? undefined : { badge: { not: 'archived_hidden' } },
+        orderBy: { createdAt: 'desc' }
+      })
+    );
+
     return NextResponse.json(products);
   } catch (error) {
     console.error("API Error:", error);

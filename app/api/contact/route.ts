@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { withDbRetry } from '@/lib/db-retry';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,9 +27,11 @@ export async function POST(req: Request) {
 // GET /api/contact — fetch all messages (admin only, guarded by middleware)
 export async function GET() {
   try {
-    const messages = await prisma.contactMessage.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+    const messages = await withDbRetry(() =>
+      prisma.contactMessage.findMany({
+        orderBy: { createdAt: 'desc' },
+      })
+    );
     return NextResponse.json(messages);
   } catch (err) {
     console.error('[CONTACT GET]', err);

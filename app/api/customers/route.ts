@@ -1,27 +1,30 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { withDbRetry } from '@/lib/db-retry'
 
 export async function GET() {
   try {
-    const customers = await prisma.user.findMany({
-      where: { role: 'CUSTOMER' },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        createdAt: true,
-        orders: {
-          select: {
-            id: true,
-            total: true,
-            status: true,
-            createdAt: true,
+    const customers = await withDbRetry(() =>
+      prisma.user.findMany({
+        where: { role: 'CUSTOMER' },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          orders: {
+            select: {
+              id: true,
+              total: true,
+              status: true,
+              createdAt: true,
+            },
+            orderBy: { createdAt: 'desc' },
           },
-          orderBy: { createdAt: 'desc' },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+        orderBy: { createdAt: 'desc' },
+      })
+    )
 
     // Compute totals per customer
     const enriched = customers.map(c => ({

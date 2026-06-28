@@ -270,6 +270,11 @@ export default function AdminDashboard() {
     return { name: dayStr, revenue, web: webRev, pos: posRev };
   });
 
+  // Give the chart's Y-axis ~20% headroom above the highest point so the
+  // line/area never touches the top edge of the card.
+  const salesPeak = Math.max(1, ...salesData.map(d => Math.max(d.web, d.pos)));
+  const salesYMax = Math.ceil((salesPeak * 1.2) / 5000) * 5000;
+
   // KPIs
   const weekOrders    = allOrders.filter(o => (now.getTime() - new Date(o.createdAt).getTime()) < 7*86400*1000);
   const totalRevenue  = weekOrders.reduce((s, o) => s + (o.total || 0), 0);
@@ -434,8 +439,9 @@ export default function AdminDashboard() {
 
               {/* Revenue area chart + Order completion radial */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2">
                 <ChartCard title="Revenue Trend" subtitle="Web vs POS — last 7 days">
-                  <div style={{ height: 240 }}>
+                  <div style={{ height: 280 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={salesData} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
                         <defs>
@@ -450,7 +456,7 @@ export default function AdminDashboard() {
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={`${NAVY}12`} />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: MUTED, fontSize: 12 }} dy={8} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: MUTED, fontSize: 11 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: MUTED, fontSize: 11 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} domain={[0, salesYMax]} />
                         <Tooltip content={<CustomTooltip />} />
                         <Area type="monotone" dataKey="web" name="Web" stroke={BRAND}  strokeWidth={2.5} fill="url(#webGrad)" dot={false} activeDot={{ r: 5, fill: BRAND }} />
                         <Area type="monotone" dataKey="pos" name="POS" stroke={NAVY}   strokeWidth={2}   fill="url(#posGrad)" dot={false} activeDot={{ r: 5, fill: NAVY }} />
@@ -459,6 +465,7 @@ export default function AdminDashboard() {
                     </ResponsiveContainer>
                   </div>
                 </ChartCard>
+                </div>
 
                 <ChartCard title="Order Completion" subtitle="All-time completion rate">
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
