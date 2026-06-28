@@ -294,8 +294,7 @@ export default function DashboardPage() {
             <Menu size={18} className="text-[#6B7A99]" />
           </button>
           <Link href="/" className="flex items-center gap-2.5">
-            <img src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp" alt="Forttune" className="h-7 object-contain" />
-            <span className="font-semibold text-[#0D1B3E] text-base tracking-wide">Forttune</span>
+            <img src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp" alt="Forttune" className="h-8 object-contain" />
           </Link>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">

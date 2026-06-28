@@ -361,11 +361,8 @@ export default function PosTerminal() {
         {/* Header */}
         <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-5 shrink-0 shadow-sm">
           <div className="flex items-center gap-3">
-            <img src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp" alt="Forttune" className="h-7 object-contain" />
-            <div>
-              <span className="font-bold text-slate-800 text-sm leading-none block">Forttune POS</span>
-              <span className="text-[11px] text-slate-500 font-medium">Terminal 01 · {cashierName.split(' ')[0]}</span>
-            </div>
+            <img src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp" alt="Forttune" className="h-8 object-contain" />
+            <span className="text-[11px] text-slate-500 font-medium">Terminal 01 · {cashierName.split(' ')[0]}</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
             <Clock size={12} className="text-slate-400" />

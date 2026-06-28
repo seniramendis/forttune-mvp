@@ -367,8 +367,7 @@ export default function AdminDashboard() {
       {/* ── SIDEBAR ─────────────────────────────────────────────────── */}
       <div className={`${mobileSidebarOpen ? 'fixed inset-y-0 left-0 z-50' : 'hidden'} lg:flex lg:relative lg:z-auto`} style={{ width: 260, background: WHITE, borderRight: `1px solid ${NAVY}1A`, display: mobileSidebarOpen ? 'flex' : undefined, flexDirection: 'column', flexShrink: 0 }}>
         <div style={{ height: 70, display: 'flex', alignItems: 'center', padding: '0 24px', borderBottom: `1px solid ${NAVY}1A` }}>
-          <img src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp" alt="Forttune" style={{ height: 28, objectFit: 'contain', marginRight: 10 }} />
-          <span style={{ fontWeight: 600, fontSize: 16, letterSpacing: '-0.2px' }}>Forttune Admin</span>
+          <img src="https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp" alt="Forttune" style={{ height: 32, objectFit: 'contain' }} />
         </div>
         <div style={{ flex: 1, padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 4 }}>
           {navItems.map(({ key, Icon, label, badge, badgeColor }) => {

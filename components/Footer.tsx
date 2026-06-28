@@ -1,4 +1,8 @@
+'use client'
+
 import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { Truck, ShieldCheck, Wrench, MapPin, Mail, Phone } from 'lucide-react'
 
 const LOGO_URL = 'https://res.cloudinary.com/dukv2otyn/image/upload/v1782676866/Forttune-3.1_sj71vp.webp'
 
@@ -22,6 +26,12 @@ const FOOTER_LINKS = {
     { label: 'My Account', href: '/dashboard' },
   ],
 }
+
+const TRUST_ITEMS = [
+  { icon: Truck,       title: 'Island Wide Delivery', desc: 'We deliver anywhere in Sri Lanka' },
+  { icon: ShieldCheck, title: 'Trusted Warranty',      desc: 'Official manufacturer warranty on all products' },
+  { icon: Wrench,      title: 'After Sales Service',   desc: 'Dedicated technical support team' },
+]
 
 const SOCIAL = [
   {
@@ -53,6 +63,11 @@ const SOCIAL = [
   },
 ]
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0 },
+}
+
 export default function Footer() {
   const year = new Date().getFullYear()
 
@@ -61,19 +76,25 @@ export default function Footer() {
 
       {/* Trust bar */}
       <div className="border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-0 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
-          {[
-            { icon: '🚚', title: 'Island Wide Delivery',  desc: 'We deliver anywhere in Sri Lanka' },
-            { icon: '🛡️', title: 'Trusted Warranty',      desc: 'Official manufacturer warranty on all products' },
-            { icon: '🔧', title: 'After Sales Service',   desc: 'Dedicated technical support team' },
-          ].map(item => (
-            <div key={item.title} className="flex items-center gap-3 sm:justify-center py-3 sm:py-0">
-              <span className="text-2xl">{item.icon}</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-0 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
+          {TRUST_ITEMS.map((item, i) => (
+            <motion.div
+              key={item.title}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              variants={fadeUp}
+              transition={{ duration: 0.5, delay: i * 0.08, ease: 'easeOut' }}
+              className="group flex items-center gap-3 sm:justify-center py-3 sm:py-0"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 text-[#E85D26] ring-1 ring-white/10 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#E85D26]/10 group-hover:ring-[#E85D26]/30">
+                <item.icon className="h-5 w-5" strokeWidth={1.75} />
+              </span>
               <div>
                 <p className="font-semibold text-sm text-white">{item.title}</p>
                 <p className="text-xs text-[#6B7A99]">{item.desc}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -83,7 +104,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
 
           {/* Brand column */}
-          <div className="lg:col-span-2 space-y-5">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-40px' }}
+            variants={fadeUp}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="lg:col-span-2 space-y-5"
+          >
             <img
               src={LOGO_URL}
               alt="Forttune Channels"
@@ -96,20 +124,20 @@ export default function Footer() {
             {/* Contact info */}
             <div className="space-y-2 text-sm">
               <div className="flex items-start gap-2.5 text-[#6B7A99]">
-                <span className="mt-0.5 shrink-0">📍</span>
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#E85D26]" strokeWidth={1.75} />
                 <span>No. 312, Galle Road, Mount Lavinia, Sri Lanka.</span>
               </div>
               <div className="flex items-center gap-2.5 text-[#6B7A99]">
-                <span className="shrink-0">📧</span>
-                <a href="mailto:info@forttune.lk" className="hover:text-[#E85D26] transition-colors">info@forttune.lk</a>
+                <Mail className="h-4 w-4 shrink-0 text-[#E85D26]" strokeWidth={1.75} />
+                <a href="mailto:info@forttune.lk" className="transition-colors duration-300 hover:text-[#E85D26]">info@forttune.lk</a>
               </div>
               <div className="flex items-start gap-2.5 text-[#6B7A99]">
-                <span className="shrink-0 mt-0.5">📞</span>
+                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-[#E85D26]" strokeWidth={1.75} />
                 <div className="space-y-0.5">
-                  <div><span className="text-white/50 text-xs">General:</span> <a href="tel:+94112638538" className="hover:text-[#E85D26] transition-colors">+94 112 638 538</a></div>
-                  <div><span className="text-white/50 text-xs">Hotline/WhatsApp:</span> <a href="tel:+94725516516" className="hover:text-[#E85D26] transition-colors">+94 725 516 516</a></div>
-                  <div><span className="text-white/50 text-xs">Retail:</span> <a href="tel:+94724516516" className="hover:text-[#E85D26] transition-colors">+94 724 516 516</a></div>
-                  <div><span className="text-white/50 text-xs">Technical:</span> <a href="tel:+94720516516" className="hover:text-[#E85D26] transition-colors">+94 720 516 516</a></div>
+                  <div><span className="text-white/50 text-xs">General:</span> <a href="tel:+94112638538" className="transition-colors duration-300 hover:text-[#E85D26]">+94 112 638 538</a></div>
+                  <div><span className="text-white/50 text-xs">Hotline/WhatsApp:</span> <a href="tel:+94725516516" className="transition-colors duration-300 hover:text-[#E85D26]">+94 725 516 516</a></div>
+                  <div><span className="text-white/50 text-xs">Retail:</span> <a href="tel:+94724516516" className="transition-colors duration-300 hover:text-[#E85D26]">+94 724 516 516</a></div>
+                  <div><span className="text-white/50 text-xs">Technical:</span> <a href="tel:+94720516516" className="transition-colors duration-300 hover:text-[#E85D26]">+94 720 516 516</a></div>
                 </div>
               </div>
             </div>
@@ -123,17 +151,24 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.name}
-                  className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[#E85D26] flex items-center justify-center transition-colors"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#E85D26] hover:shadow-lg hover:shadow-[#E85D26]/20"
                 >
                   {s.icon}
                 </a>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Link columns */}
-          {Object.entries(FOOTER_LINKS).map(([heading, links]) => (
-            <div key={heading}>
+          {Object.entries(FOOTER_LINKS).map(([heading, links], colIndex) => (
+            <motion.div
+              key={heading}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              variants={fadeUp}
+              transition={{ duration: 0.5, delay: 0.1 + colIndex * 0.06, ease: 'easeOut' }}
+            >
               <h3 className="text-xs font-bold uppercase tracking-widest text-[#E85D26] mb-4">{heading}</h3>
               <ul className="space-y-2.5">
                 {links.map(link => (
@@ -143,19 +178,25 @@ export default function Footer() {
                         href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-[#6B7A99] hover:text-white transition-colors"
+                        className="group inline-flex items-center text-sm text-[#6B7A99] transition-colors duration-300 hover:text-white"
                       >
-                        {link.label}
+                        <span className="relative">
+                          {link.label}
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-[#E85D26] transition-all duration-300 group-hover:w-full" />
+                        </span>
                       </a>
                     ) : (
-                      <Link href={link.href} className="text-sm text-[#6B7A99] hover:text-white transition-colors">
-                        {link.label}
+                      <Link href={link.href} className="group inline-flex items-center text-sm text-[#6B7A99] transition-colors duration-300 hover:text-white">
+                        <span className="relative">
+                          {link.label}
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-[#E85D26] transition-all duration-300 group-hover:w-full" />
+                        </span>
                       </Link>
                     )}
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           ))}
 
         </div>
@@ -167,7 +208,14 @@ export default function Footer() {
           <p>© {year} Forttune Channels (Pvt) Ltd. All rights reserved.</p>
           <p>
             Hosted &amp; Maintained by{' '}
-            <a href="https://inetsl.com/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#E85D26] font-semibold transition-colors">I-NET</a>
+            <a
+              href="https://dopmin.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-white transition-colors duration-300 hover:text-[#E85D26]"
+            >
+              DopMin Technologies
+            </a>
           </p>
         </div>
       </div>
