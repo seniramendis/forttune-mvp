@@ -428,92 +428,113 @@ export default function ForttuneApp() {
         })}
       </AnimatePresence>
       
-      {/* NAVBAR */}
-      <nav className="bg-white border-b border-[#0D1B3E]/8 h-[60px] flex items-center justify-between px-5 md:px-10 sticky top-0 z-40 shadow-sm">
-        <div className="flex items-center cursor-pointer gap-3" onClick={() => setPage('home')}>
-          <img
-            src="https://res.cloudinary.com/dukv2otyn/image/upload/v1781957501/874b574032c781f9eb100c851006a78d_crop1681211041_sxrilv.png"
-            alt="Forttune Channels"
-            className="h-8 object-contain"
-          />
-        </div>
+      {/* NAVBAR — floating pill style */}
+      <div className="sticky top-0 z-40 px-4 md:px-8 pt-3 pb-1 pointer-events-none">
+        <nav className="pointer-events-auto bg-white/95 backdrop-blur-md border border-[#E2E6F0] rounded-2xl shadow-[0_4px_24px_rgba(13,27,62,0.09)] h-[60px] flex items-center justify-between px-4 md:px-6 mx-auto max-w-7xl">
 
-        <div className="hidden sm:flex gap-7">
-          {['home', 'products', 'contact'].map(p => (
-            <button key={p} onClick={() => { setPage(p); window.scrollTo(0,0); }} className={`text-[13px] font-semibold capitalize transition-colors ${page === p || (page === 'product-detail' && p === 'products') ? 'text-[#E85D26]' : 'text-[#6B7A99] hover:text-[#0D1B3E]'}`}>
-              {p}
-            </button>
-          ))}
-        </div>
+          {/* LOGO */}
+          <div className="flex items-center cursor-pointer gap-2.5 shrink-0" onClick={() => setPage('home')}>
+            <img
+              src="https://res.cloudinary.com/dukv2otyn/image/upload/v1781957501/874b574032c781f9eb100c851006a78d_crop1681211041_sxrilv.png"
+              alt="Forttune Channels"
+              className="h-8 object-contain"
+            />
+          </div>
 
-        <div className="flex items-center gap-3">
-          {currentUser ? (
-            <div className="relative">
-              <button
-                onClick={() => setUserMenuOpen(v => !v)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#0D1B3E]/12 hover:bg-[#F5F6FA] transition-colors text-[13px] font-medium text-[#0D1B3E]"
-              >
-                <div className="w-6 h-6 rounded-full bg-[#E85D26] text-white flex items-center justify-center text-[11px] font-bold">
-                  {(currentUser.name || currentUser.email || '?').charAt(0).toUpperCase()}
-                </div>
-                <span className="hidden sm:block max-w-[120px] truncate">{currentUser.name || currentUser.email}</span>
-                <ChevronDown size={13} className="text-[#6B7A99]" />
-              </button>
-              {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-[#0D1B3E]/10 py-1 z-50">
-                  <div className="px-4 py-2.5 border-b border-[#0D1B3E]/8">
-                    <p className="text-xs font-semibold text-[#0D1B3E] truncate">{currentUser.name || 'Customer'}</p>
-                    <p className="text-xs text-[#6B7A99] truncate mt-0.5">{currentUser.email}</p>
-                  </div>
-                  <a href={currentUser.role === 'ADMIN' ? '/admin' : '/dashboard'} className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-[#0D1B3E] hover:bg-gray-50 transition-colors">
-                    <User size={14} /> My Dashboard
-                  </a>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors border-t border-[#0D1B3E]/5"
-                  >
-                    <LogOut size={14} /> Sign Out
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <a href="/login" className="px-3 py-1.5 text-[13px] font-semibold text-[#0D1B3E] hover:text-[#E85D26] transition-colors hidden sm:block">
-                Sign In
-              </a>
-              <a href="/register" className="px-3 py-1.5 rounded-lg bg-[#E85D26] text-white text-[13px] font-semibold hover:bg-[#F47A4A] transition-colors hidden sm:block">
-                Register
-              </a>
-            </div>
-          )}
-
-          <motion.button
-            ref={cartIconRef}
-            onClick={() => setIsCartOpen(true)}
-            animate={cartBump ? { scale: [1, 1.3, 0.92, 1.08, 1] } : { scale: 1 }}
-            transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="bg-[#0D1B3E] hover:bg-[#1A2F5E] transition-colors text-white px-4 py-2 rounded-lg text-[13px] font-semibold cursor-pointer flex items-center gap-2"
-          >
-            <ShoppingCart size={15} />
-            <span>Cart</span>
-            <AnimatePresence mode="wait">
-              {cartCount > 0 && (
-                <motion.span
-                  key={cartCount}
-                  initial={{ scale: 0, opacity: 0, y: -6 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0, opacity: 0 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 18 }}
-                  className="bg-[#E85D26] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center"
+          {/* CENTER NAV LINKS — segmented pill switcher */}
+          <div className="hidden sm:flex items-center gap-1 bg-[#F5F6FA] rounded-xl px-1.5 py-1">
+            {[
+              { key: 'home', label: 'Home' },
+              { key: 'products', label: 'Products' },
+              { key: 'contact', label: 'Contact' },
+            ].map(({ key, label }) => {
+              const isActive = page === key || (page === 'product-detail' && key === 'products');
+              return (
+                <button
+                  key={key}
+                  onClick={() => { setPage(key); window.scrollTo(0, 0); }}
+                  className={`px-4 py-1.5 rounded-lg text-[13px] font-semibold transition-all duration-200 ${
+                    isActive
+                      ? 'bg-white text-[#0D1B3E] shadow-sm'
+                      : 'text-[#6B7A99] hover:text-[#0D1B3E]'
+                  }`}
                 >
-                  {cartCount}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
-        </div>
-      </nav>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* RIGHT ACTIONS */}
+          <div className="flex items-center gap-2">
+            {currentUser ? (
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(v => !v)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[#E2E6F0] hover:bg-[#F5F6FA] transition-colors text-[13px] font-medium text-[#0D1B3E]"
+                >
+                  <div className="w-6 h-6 rounded-full bg-[#E85D26] text-white flex items-center justify-center text-[11px] font-bold">
+                    {(currentUser.name || currentUser.email || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <span className="hidden sm:block max-w-[120px] truncate">{currentUser.name || currentUser.email}</span>
+                  <ChevronDown size={13} className="text-[#6B7A99]" />
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-[#0D1B3E]/10 py-1 z-50">
+                    <div className="px-4 py-2.5 border-b border-[#0D1B3E]/8">
+                      <p className="text-xs font-semibold text-[#0D1B3E] truncate">{currentUser.name || 'Customer'}</p>
+                      <p className="text-xs text-[#6B7A99] truncate mt-0.5">{currentUser.email}</p>
+                    </div>
+                    <a href={currentUser.role === 'ADMIN' ? '/admin' : '/dashboard'} className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-[#0D1B3E] hover:bg-gray-50 transition-colors">
+                      <User size={14} /> My Dashboard
+                    </a>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors border-t border-[#0D1B3E]/5"
+                    >
+                      <LogOut size={14} /> Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <a href="/login" className="px-3 py-1.5 text-[13px] font-semibold text-[#0D1B3E] hover:text-[#E85D26] transition-colors hidden sm:block">
+                  Sign In
+                </a>
+                <a href="/register" className="px-3 py-1.5 rounded-xl border border-[#E2E6F0] bg-white text-[#0D1B3E] text-[13px] font-semibold hover:border-[#0D1B3E]/30 transition-colors hidden sm:block shadow-sm">
+                  Register
+                </a>
+              </div>
+            )}
+
+            <motion.button
+              ref={cartIconRef}
+              onClick={() => setIsCartOpen(true)}
+              animate={cartBump ? { scale: [1, 1.3, 0.92, 1.08, 1] } : { scale: 1 }}
+              transition={{ duration: 0.45, ease: 'easeOut' }}
+              className="bg-[#0D1B3E] hover:bg-[#1A2F5E] transition-colors text-white px-4 py-2 rounded-xl text-[13px] font-semibold cursor-pointer flex items-center gap-2"
+            >
+              <ShoppingCart size={15} />
+              <span>Cart</span>
+              <AnimatePresence mode="wait">
+                {cartCount > 0 && (
+                  <motion.span
+                    key={cartCount}
+                    initial={{ scale: 0, opacity: 0, y: -6 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 18 }}
+                    className="bg-[#E85D26] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center"
+                  >
+                    {cartCount}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </div>
+        </nav>
+      </div>
 
       {/* MOBILE NAV */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#0D1B3E]/8 flex justify-around py-2 px-4 z-30 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
