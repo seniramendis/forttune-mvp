@@ -16,7 +16,7 @@ const CartIcon = ({ size = 18, className = "" }: { size?: number; className?: st
 );
 
 // Minimal modern SVG icons per category
-const CatIcons: Record<string, (props: { size?: number; className?: string }) => JSX.Element> = {
+const CatIcons: Record<string, (props: { size?: number; className?: string }) => React.JSX.Element> = {
   Laptops: ({ size = 20, className = "" }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <rect x="2" y="4" width="20" height="13" rx="2"/>
