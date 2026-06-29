@@ -8,6 +8,15 @@ import {
   Search, MapPin, Phone, MessageCircle, Package, X, ChevronLeft, Minus, Plus, Trash2, CheckCircle,
   User, LogOut, ChevronDown
 } from 'lucide-react';
+import { FloatingDock, type FloatingDockItem } from '@/components/ui/floating-dock';
+import {
+  IconHome,
+  IconDeviceLaptop,
+  IconShoppingCart,
+  IconPhone,
+  IconUserCircle,
+  IconLogin2,
+} from '@tabler/icons-react';
 
 const CATEGORIES = ['All', 'Laptops', 'Desktops', 'Monitors', 'Networking', 'Printers', 'Servers', 'Storage', 'Accessories'];
 
@@ -526,29 +535,8 @@ export default function ForttuneApp() {
             />
           </div>
 
-          {/* CENTER NAV LINKS — segmented pill switcher */}
-          <div className="hidden sm:flex items-center gap-1 bg-[#F5F6FA] rounded-xl px-1.5 py-1">
-            {[
-              { key: 'home', label: 'Home' },
-              { key: 'products', label: 'Products' },
-              { key: 'contact', label: 'Contact' },
-            ].map(({ key, label }) => {
-              const isActive = page === key || (page === 'product-detail' && key === 'products');
-              return (
-                <button
-                  key={key}
-                  onClick={() => { setPage(key); window.scrollTo(0, 0); }}
-                  className={`px-4 py-1.5 rounded-lg text-[13px] font-semibold transition-all duration-200 ${
-                    isActive
-                      ? 'bg-white text-[#0D1B3E] shadow-sm'
-                      : 'text-[#6B7A99] hover:text-[#0D1B3E]'
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
+          {/* CENTER NAV LINKS now live in the floating dock at the bottom of the screen */}
+
 
           {/* RIGHT ACTIONS */}
           <div className="flex items-center gap-2">
@@ -621,26 +609,55 @@ export default function ForttuneApp() {
         </nav>
       </div>
 
-      {/* MOBILE NAV */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#0D1B3E]/8 flex justify-around py-2 px-4 z-30 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
-        {['home', 'products', 'contact'].map(p => (
-          <button key={p} onClick={() => { setPage(p); window.scrollTo(0,0); }} className={`text-[10px] font-semibold capitalize flex flex-col items-center gap-1 py-1 ${page === p || (page === 'product-detail' && p === 'products') ? 'text-[#E85D26]' : 'text-[#6B7A99]'}`}>
-            {p === 'home' ? <Store size={18}/> : p === 'products' ? <Package size={18}/> : <Phone size={18}/>}
-            {p}
-          </button>
-        ))}
-        {currentUser ? (
-          <button onClick={handleLogout} className="text-[10px] font-semibold flex flex-col items-center gap-1 py-1 text-red-400">
-            <LogOut size={18} /> Sign Out
-          </button>
-        ) : (
-          <a href="/login" className="text-[10px] font-semibold flex flex-col items-center gap-1 py-1 text-[#6B7A99]">
-            <User size={18} /> Sign In
-          </a>
-        )}
+      {/* FLOATING NAV DOCK — primary navigation on every screen size */}
+      <div className="fixed bottom-4 inset-x-0 z-30 flex justify-center px-4">
+        <FloatingDock
+          items={(() => {
+            const dock: FloatingDockItem[] = [
+              {
+                title: 'Home',
+                icon: <IconHome className="h-full w-full text-[#6B7A99]" />,
+                onClick: () => { setPage('home'); window.scrollTo(0, 0); },
+                active: page === 'home',
+              },
+              {
+                title: 'Products',
+                icon: <IconDeviceLaptop className="h-full w-full text-[#6B7A99]" />,
+                onClick: () => { setPage('products'); window.scrollTo(0, 0); },
+                active: page === 'products' || page === 'product-detail',
+              },
+              {
+                title: 'Cart',
+                icon: <IconShoppingCart className="h-full w-full text-[#6B7A99]" />,
+                onClick: () => setIsCartOpen(true),
+                badge: cartCount > 0 ? cartCount : undefined,
+              },
+              {
+                title: 'Contact',
+                icon: <IconPhone className="h-full w-full text-[#6B7A99]" />,
+                onClick: () => { setPage('contact'); window.scrollTo(0, 0); },
+                active: page === 'contact',
+              },
+            ];
+            if (currentUser) {
+              dock.push({
+                title: 'Account',
+                icon: <IconUserCircle className="h-full w-full text-[#6B7A99]" />,
+                href: currentUser.role === 'ADMIN' ? '/admin' : '/dashboard',
+              });
+            } else {
+              dock.push({
+                title: 'Sign In',
+                icon: <IconLogin2 className="h-full w-full text-[#6B7A99]" />,
+                href: '/login',
+              });
+            }
+            return dock;
+          })()}
+        />
       </div>
 
-      <div className="pb-20 sm:pb-10">
+      <div className="pb-24">
         
         {/* PRODUCT DETAIL PAGE */}
         {page === 'product-detail' && selectedProduct && (
