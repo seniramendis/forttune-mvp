@@ -523,7 +523,11 @@ export default function ForttuneApp() {
       </AnimatePresence>
       
       {/* NAVBAR — floating pill style */}
-      <div className="sticky top-0 z-40 px-4 md:px-8 pt-3 pb-1 pointer-events-none">
+      <motion.div
+        className="sticky top-0 z-40 px-4 md:px-8 pt-3 pb-1 pointer-events-none"
+        animate={{ y: [0, -4, 0] }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+      >
         <nav className="pointer-events-auto bg-white/95 backdrop-blur-md border border-[#E2E6F0] rounded-2xl shadow-[0_4px_24px_rgba(13,27,62,0.09)] h-[60px] flex items-center justify-between px-4 md:px-6 mx-auto max-w-7xl">
 
           {/* LOGO */}
@@ -607,7 +611,7 @@ export default function ForttuneApp() {
             </motion.button>
           </div>
         </nav>
-      </div>
+      </motion.div>
 
       {/* FLOATING NAV DOCK — primary navigation on every screen size */}
       <div className="fixed bottom-4 inset-x-0 z-30 flex justify-center px-4">
