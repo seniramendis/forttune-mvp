@@ -5,25 +5,88 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, Heart,
-  Laptop, Monitor, Wifi, Printer, Server, Database, Mouse, 
-  Search, MapPin, Phone, MessageCircle, Mail, Clock, Package, X, ChevronLeft, Minus, Plus, Trash2, CheckCircle,
+  Search, MapPin, Phone, MessageCircle, Package, X, ChevronLeft, Minus, Plus, Trash2, CheckCircle,
   User, LogOut, ChevronDown
 } from 'lucide-react';
 
 const CATEGORIES = ['All', 'Laptops', 'Desktops', 'Monitors', 'Networking', 'Printers', 'Servers', 'Storage', 'Accessories'];
 
-const getCatIcon = (cat: string, className: string = "") => {
-  switch (cat) {
-    case 'Laptops': return <Laptop className={className} strokeWidth={1.5} />;
-    case 'Desktops': return <Monitor className={className} strokeWidth={1.5} />;
-    case 'Monitors': return <Monitor className={className} strokeWidth={1.5} />;
-    case 'Networking': return <Wifi className={className} strokeWidth={1.5} />;
-    case 'Printers': return <Printer className={className} strokeWidth={1.5} />;
-    case 'Servers': return <Server className={className} strokeWidth={1.5} />;
-    case 'Storage': return <Database className={className} strokeWidth={1.5} />;
-    case 'Accessories': return <Mouse className={className} strokeWidth={1.5} />;
-    default: return <Package className={className} strokeWidth={1.5} />;
-  }
+const CartIcon = ({ size = 18, className = "" }: { size?: number; className?: string }) => (
+  <ShoppingCart size={size} className={className} strokeWidth={1.75} />
+);
+
+// Minimal modern SVG icons per category
+const CatIcons: Record<string, (props: { size?: number; className?: string }) => JSX.Element> = {
+  Laptops: ({ size = 20, className = "" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="4" width="20" height="13" rx="2"/>
+      <path d="M1 21h22"/>
+    </svg>
+  ),
+  Desktops: ({ size = 20, className = "" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="3" width="20" height="14" rx="2"/>
+      <path d="M8 21h8M12 17v4"/>
+    </svg>
+  ),
+  Monitors: ({ size = 20, className = "" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="3" width="20" height="13" rx="2"/>
+      <path d="M8 21h8M12 16v5"/>
+      <circle cx="12" cy="9.5" r="1" fill="currentColor" stroke="none"/>
+    </svg>
+  ),
+  Networking: ({ size = 20, className = "" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M5 12.55a11 11 0 0114.08 0"/>
+      <path d="M1.42 9a16 16 0 0121.16 0"/>
+      <path d="M8.53 16.11a6 6 0 016.95 0"/>
+      <circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/>
+    </svg>
+  ),
+  Printers: ({ size = 20, className = "" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <polyline points="6 9 6 2 18 2 18 9"/>
+      <rect x="6" y="17" width="12" height="5"/>
+      <rect x="2" y="9" width="20" height="8" rx="1"/>
+      <line x1="18" y1="13" x2="18" y2="13.01"/>
+    </svg>
+  ),
+  Servers: ({ size = 20, className = "" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="3" width="20" height="5" rx="1"/>
+      <rect x="2" y="10" width="20" height="5" rx="1"/>
+      <rect x="2" y="17" width="20" height="4" rx="1"/>
+      <circle cx="6" cy="5.5" r="0.8" fill="currentColor" stroke="none"/>
+      <circle cx="6" cy="12.5" r="0.8" fill="currentColor" stroke="none"/>
+    </svg>
+  ),
+  Storage: ({ size = 20, className = "" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <ellipse cx="12" cy="5" rx="9" ry="3"/>
+      <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+      <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+    </svg>
+  ),
+  Accessories: ({ size = 20, className = "" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="7" y="2" width="10" height="18" rx="4"/>
+      <line x1="12" y1="7" x2="12" y2="9"/>
+    </svg>
+  ),
+  All: ({ size = 20, className = "" }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+  ),
+};
+
+const getCatIcon = (cat: string, className: string = "", size: number = 20) => {
+  const Icon = CatIcons[cat] || CatIcons['All'];
+  return <Icon size={size} className={className} />;
 };
 
 const formatLKR = (num: number) => `Rs ${num.toLocaleString('en-LK')}`;
@@ -270,7 +333,7 @@ export default function ForttuneApp() {
               transition={{ type: 'spring', stiffness: 500, damping: 20 }}
               className="flex items-center gap-1.5 relative z-10"
             >
-              <ShoppingCart size={isCard ? 13 : 16} /> {disabled ? 'Out of Stock' : (isCard ? 'Add to cart' : 'Add to Cart')}
+              <CartIcon size={isCard ? 13 : 16} /> {disabled ? 'Out of Stock' : (isCard ? 'Add to cart' : 'Add to Cart')}
             </motion.span>
           )}
         </AnimatePresence>
@@ -363,7 +426,7 @@ export default function ForttuneApp() {
             />
           ) : (
             <div className="transition-transform duration-500 ease-out group-hover:scale-[1.06]">
-              {getCatIcon(p.category, "w-14 h-14 text-[#1A2F5E]/15")}
+              {getCatIcon(p.category, "text-[#1A2F5E]/15", 56)}
             </div>
           )}
 
@@ -443,7 +506,7 @@ export default function ForttuneApp() {
               {item.image ? (
                 <img src={item.image} className="w-full h-full object-cover mix-blend-multiply" />
               ) : (
-                <ShoppingCart size={14} className="text-[#E85D26]" />
+                <CartIcon size={14} className="text-[#E85D26]" />
               )}
             </motion.div>
           );
@@ -533,21 +596,21 @@ export default function ForttuneApp() {
             <motion.button
               ref={cartIconRef}
               onClick={() => setIsCartOpen(true)}
-              animate={cartBump ? { scale: [1, 1.3, 0.92, 1.08, 1] } : { scale: 1 }}
+              animate={cartBump ? { scale: [1, 1.25, 0.93, 1.06, 1] } : { scale: 1 }}
               transition={{ duration: 0.45, ease: 'easeOut' }}
-              className="bg-[#0D1B3E] hover:bg-[#1A2F5E] transition-colors text-white px-4 py-2 rounded-xl text-[13px] font-semibold cursor-pointer flex items-center gap-2"
+              className="relative w-10 h-10 flex items-center justify-center rounded-xl text-[#0D1B3E] hover:bg-[#0D1B3E]/6 transition-colors cursor-pointer"
+              aria-label="Open cart"
             >
-              <ShoppingCart size={15} />
-              <span>Cart</span>
+              <CartIcon size={20} />
               <AnimatePresence mode="wait">
                 {cartCount > 0 && (
                   <motion.span
                     key={cartCount}
-                    initial={{ scale: 0, opacity: 0, y: -6 }}
-                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 18 }}
-                    className="bg-[#E85D26] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center"
+                    transition={{ type: 'spring', stiffness: 600, damping: 20 }}
+                    className="absolute -top-0.5 -right-0.5 bg-[#E85D26] text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center leading-none"
                   >
                     {cartCount}
                   </motion.span>
@@ -599,7 +662,7 @@ export default function ForttuneApp() {
                     className="max-h-[220px] w-full object-contain mix-blend-multiply"
                   />
                 ) : (
-                  getCatIcon(selectedProduct.category, "w-32 h-32 text-[#1A2F5E]/10")
+                  getCatIcon(selectedProduct.category, "text-[#1A2F5E]/10", 128)
                 )}
                 <div className="absolute top-5 left-5 flex gap-2">
                   {selectedProduct.stock > 0 && selectedProduct.badge === 'hot' && (
@@ -763,11 +826,17 @@ export default function ForttuneApp() {
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-lg font-bold text-[#0D1B3E]">Shop by Category</h2>
                 </div>
-                <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
                   {CATEGORIES.filter(c => c !== 'All').map(cat => (
-                    <div key={cat} onClick={() => handleCategoryClick(cat)} className="bg-white border border-[#0D1B3E]/8 rounded-xl py-4 px-2 text-center cursor-pointer hover:border-[#E85D26] hover:shadow-md transition-all flex flex-col items-center gap-2">
-                      {getCatIcon(cat, "text-[#1A2F5E]/50 w-5 h-5")}
-                      <span className="text-[10px] font-bold text-[#0D1B3E] leading-tight">{cat}</span>
+                    <div
+                      key={cat}
+                      onClick={() => handleCategoryClick(cat)}
+                      className="group bg-white border border-[#0D1B3E]/8 rounded-2xl py-5 px-2 text-center cursor-pointer hover:border-[#E85D26]/40 hover:shadow-[0_4px_20px_rgba(232,93,38,0.10)] transition-all duration-200 flex flex-col items-center gap-2.5"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-[#F5F6FA] group-hover:bg-[#E85D26]/8 flex items-center justify-center transition-colors duration-200">
+                        {getCatIcon(cat, "text-[#0D1B3E]/40 group-hover:text-[#E85D26] transition-colors duration-200", 18)}
+                      </div>
+                      <span className="text-[10px] font-semibold text-[#6B7A99] group-hover:text-[#0D1B3E] leading-tight tracking-wide uppercase transition-colors duration-200">{cat}</span>
                     </div>
                   ))}
                 </div>
@@ -916,7 +985,7 @@ export default function ForttuneApp() {
           <div className="w-full sm:w-[380px] bg-white h-full flex flex-col shadow-2xl">
             <div className="p-5 border-b border-[#0D1B3E]/8 flex items-center justify-between">
               <h3 className="text-base font-bold text-[#0D1B3E] flex items-center gap-2">
-                <ShoppingCart size={18}/> Your Cart
+                <CartIcon size={18}/> Your Cart
                 {cartCount > 0 && <span className="bg-[#E85D26] text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>}
               </h3>
               <button onClick={() => setIsCartOpen(false)} className="text-[#6B7A99] hover:text-[#0D1B3E] transition-colors">
@@ -928,7 +997,7 @@ export default function ForttuneApp() {
               {cart.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center py-12">
                   <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-                    <ShoppingCart size={22} className="text-[#6B7A99]/40" />
+                    <CartIcon size={22} className="text-[#6B7A99]/40" />
                   </div>
                   <h4 className="text-[#0D1B3E] font-bold mb-1">Your cart is empty</h4>
                   <p className="text-[#6B7A99] text-sm">Browse inventory to add products.</p>
@@ -941,7 +1010,7 @@ export default function ForttuneApp() {
                   {cart.map((x, i) => (
                     <div key={i} className="flex gap-3 p-3 bg-white border border-[#0D1B3E]/8 rounded-xl relative">
                       <div className="bg-[#F5F6FA] rounded-xl w-14 h-14 flex items-center justify-center shrink-0">
-                        {getCatIcon(x.category, "w-5 h-5 text-[#1A2F5E]/40")}
+                        {getCatIcon(x.category, "text-[#1A2F5E]/40", 20)}
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
                         <div className="text-sm font-semibold text-[#0D1B3E] mb-1 truncate pr-5">{x.name}</div>
