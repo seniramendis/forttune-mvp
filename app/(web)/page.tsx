@@ -125,6 +125,27 @@ export default function ForttuneApp() {
     showToast(exists ? `Removed from saved items` : `${product.name} saved`);
   };
 
+  // Hero background slideshow
+  const HERO_IMAGES = [
+    'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=1600&q=80', // laptop setup
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1600&q=80', // circuit board
+    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80', // server room
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80', // team with laptops
+  ];
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [heroPrev, setHeroPrev] = useState<number | null>(null);
+  const [heroFading, setHeroFading] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroPrev(heroIndex);
+      setHeroFading(true);
+      setHeroIndex(i => (i + 1) % HERO_IMAGES.length);
+      setTimeout(() => { setHeroPrev(null); setHeroFading(false); }, 1200);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [heroIndex]);
+
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
   const [contactSending, setContactSending] = useState(false);
 
@@ -658,31 +679,63 @@ export default function ForttuneApp() {
         {page === 'home' && (
           <div>
             {/* HERO */}
-            <div className="bg-white border-b border-[#0D1B3E]/8 pt-12 pb-12 px-5 md:pt-20 md:pb-16 md:px-10 relative overflow-hidden">
-              {/* Background accent */}
-              <div className="absolute right-0 top-0 w-[480px] h-full bg-gradient-to-l from-[#F5F6FA] to-transparent pointer-events-none hidden md:block" />
-              <div className="absolute -right-16 top-1/2 -translate-y-1/2 w-72 h-72 rounded-full border-[40px] border-[#E85D26]/6 pointer-events-none hidden md:block" />
-              
-              <div className="max-w-7xl mx-auto relative z-10">
+            <div className="relative overflow-hidden border-b border-[#0D1B3E]/8" style={{ minHeight: '420px' }}>
+              {/* Slideshow background images */}
+              {HERO_IMAGES.map((src, i) => (
+                <div
+                  key={src}
+                  className="absolute inset-0 w-full h-full"
+                  style={{
+                    backgroundImage: `url(${src})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    opacity: i === heroIndex ? 1 : 0,
+                    transition: i === heroIndex ? 'opacity 1.2s ease-in-out' : 'opacity 0.6s ease-in-out',
+                    zIndex: i === heroIndex ? 1 : 0,
+                  }}
+                />
+              ))}
+
+              {/* Dark overlay for readability */}
+              <div className="absolute inset-0 z-10" style={{ background: 'linear-gradient(105deg, rgba(13,27,62,0.82) 0%, rgba(13,27,62,0.55) 55%, rgba(13,27,62,0.25) 100%)' }} />
+
+              {/* Content */}
+              <div className="relative z-20 pt-14 pb-14 px-5 md:pt-24 md:pb-20 md:px-10 max-w-7xl mx-auto">
                 <div className="max-w-[560px]">
-                  <div className="inline-block bg-[#0D1B3E] text-white text-[10px] font-bold tracking-[1.2px] uppercase px-3 py-1.5 rounded-full mb-5">
+                  <div className="inline-block bg-[#E85D26] text-white text-[10px] font-bold tracking-[1.2px] uppercase px-3 py-1.5 rounded-full mb-5">
                     Sri Lanka's IT Hardware Distributor
                   </div>
-                  <h1 className="text-[#0D1B3E] text-[34px] md:text-[52px] font-extrabold leading-[1.15] mb-5">
+                  <h1 className="text-white text-[34px] md:text-[52px] font-extrabold leading-[1.15] mb-5 drop-shadow-lg">
                     Premium tech,<br/>
                     delivered to your <span className="text-[#E85D26]">door.</span>
                   </h1>
-                  <p className="text-[#6B7A99] text-[15px] max-w-[420px] leading-[1.7] mb-8">
+                  <p className="text-white/80 text-[15px] max-w-[420px] leading-[1.7] mb-8">
                     Laptops, servers, networking and peripherals from 15+ global brands. Trusted by 500+ channel partners across the island.
                   </p>
                   <div className="flex gap-3 flex-wrap">
-                    <button onClick={() => setPage('products')} className="bg-[#0D1B3E] text-white px-6 py-3.5 rounded-xl text-[14px] font-semibold hover:bg-[#1A2F5E] transition-colors shadow-lg">
+                    <button onClick={() => setPage('products')} className="bg-[#E85D26] text-white px-6 py-3.5 rounded-xl text-[14px] font-semibold hover:bg-[#f47a4a] transition-colors shadow-lg">
                       Browse Inventory
                     </button>
-                    <button onClick={() => setPage('contact')} className="bg-white text-[#0D1B3E] border border-[#0D1B3E]/15 px-6 py-3.5 rounded-xl text-[14px] font-semibold hover:border-[#E85D26] hover:text-[#E85D26] transition-colors">
+                    <button onClick={() => setPage('contact')} className="bg-white/15 backdrop-blur-sm text-white border border-white/30 px-6 py-3.5 rounded-xl text-[14px] font-semibold hover:bg-white/25 transition-colors">
                       Request a Quote
                     </button>
                   </div>
+                </div>
+
+                {/* Slide dots */}
+                <div className="flex gap-1.5 mt-10">
+                  {HERO_IMAGES.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setHeroPrev(heroIndex); setHeroIndex(i); }}
+                      className="rounded-full transition-all duration-300"
+                      style={{
+                        width: i === heroIndex ? '24px' : '8px',
+                        height: '8px',
+                        background: i === heroIndex ? '#E85D26' : 'rgba(255,255,255,0.45)',
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
