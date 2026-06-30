@@ -18,6 +18,7 @@ import {
   IconLogin2,
   IconInfoCircle,
   IconTool,
+  IconDots,
 } from '@tabler/icons-react';
 
 const CATEGORIES = ['All', 'Laptops', 'Desktops', 'Monitors', 'Networking', 'Printers', 'Servers', 'Storage', 'Accessories'];
@@ -109,6 +110,7 @@ export default function ForttuneApp() {
   const [page, setPage] = useState('home');
   const expertiseScrollRef = useRef<HTMLDivElement>(null);
   const homeExpertiseScrollRef = useRef<HTMLDivElement>(null);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [pdpQty, setPdpQty] = useState(1);
 
@@ -659,21 +661,21 @@ export default function ForttuneApp() {
 
       {/* BOTTOM TAB BAR — mobile only */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-[#E2E6F0] pb-[env(safe-area-inset-bottom)]">
-        <div className="grid grid-cols-4 h-16">
+        <div className="grid grid-cols-5 h-16">
           {[
             {
               key: 'home',
               label: 'Home',
               icon: IconHome,
               active: page === 'home',
-              onClick: () => { setPage('home'); window.scrollTo(0, 0); },
+              onClick: () => { setMoreMenuOpen(false); setPage('home'); window.scrollTo(0, 0); },
             },
             {
               key: 'products',
               label: 'Products',
               icon: IconDeviceLaptop,
               active: page === 'products' || page === 'product-detail',
-              onClick: () => { setPage('products'); window.scrollTo(0, 0); },
+              onClick: () => { setMoreMenuOpen(false); setPage('products'); window.scrollTo(0, 0); },
             },
             {
               key: 'cart',
@@ -681,7 +683,7 @@ export default function ForttuneApp() {
               icon: IconShoppingCart,
               active: false,
               badge: cartCount > 0 ? cartCount : undefined,
-              onClick: () => setIsCartOpen(true),
+              onClick: () => { setMoreMenuOpen(false); setIsCartOpen(true); },
             },
             {
               key: 'account',
@@ -689,12 +691,20 @@ export default function ForttuneApp() {
               icon: currentUser ? IconUserCircle : IconLogin2,
               active: page === 'dashboard',
               onClick: () => {
+                setMoreMenuOpen(false);
                 if (currentUser) {
                   window.location.href = currentUser.role === 'ADMIN' ? '/admin' : '/dashboard';
                 } else {
                   window.location.href = '/login';
                 }
               },
+            },
+            {
+              key: 'more',
+              label: 'More',
+              icon: IconDots,
+              active: moreMenuOpen || page === 'contact' || page === 'about' || page === 'services',
+              onClick: () => setMoreMenuOpen(v => !v),
             },
           ].map(tab => {
             const Icon = tab.icon;
@@ -718,6 +728,50 @@ export default function ForttuneApp() {
           })}
         </div>
       </nav>
+
+      {/* MORE SHEET — mobile only */}
+      <AnimatePresence>
+        {moreMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMoreMenuOpen(false)}
+              className="md:hidden fixed inset-0 z-40 bg-[#0D1B3E]/30"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="md:hidden fixed bottom-16 inset-x-0 z-40 bg-white rounded-t-2xl border-t border-[#E2E6F0] shadow-[0_-8px_30px_rgba(13,27,62,0.12)] pb-[env(safe-area-inset-bottom)]"
+            >
+              <div className="w-10 h-1 rounded-full bg-[#E2E6F0] mx-auto mt-3 mb-1" />
+              <div className="py-2">
+                {[
+                  { key: 'services', label: 'Services', icon: IconTool },
+                  { key: 'about', label: 'About Us', icon: IconInfoCircle },
+                  { key: 'contact', label: 'Contact', icon: IconPhone },
+                ].map(item => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => { setMoreMenuOpen(false); setPage(item.key); window.scrollTo(0, 0); }}
+                      className={`w-full flex items-center gap-3 px-6 py-3.5 text-[14px] font-medium transition-colors ${page === item.key ? 'text-[#E85D26]' : 'text-[#0D1B3E]'} hover:bg-[#F5F6FA]`}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <div className="pb-16 md:pb-0">
         
