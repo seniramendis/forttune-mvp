@@ -1045,7 +1045,7 @@ export default function ForttuneApp() {
       {/* CART DRAWER */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-[#0D1B3E]/40 backdrop-blur-sm z-50 flex justify-end" onClick={(e) => { if(e.target === e.currentTarget) setIsCartOpen(false) }}>
-          <div className="w-full sm:w-[380px] bg-white h-full flex flex-col shadow-2xl">
+          <div className="w-1/2 min-w-[260px] sm:w-[380px] bg-white h-full flex flex-col shadow-2xl">
             <div className="p-5 border-b border-[#0D1B3E]/8 flex items-center justify-between">
               <h3 className="text-base font-bold text-[#0D1B3E] flex items-center gap-2">
                 <CartIcon size={18}/> Your Cart
@@ -1059,10 +1059,8 @@ export default function ForttuneApp() {
             <div className="flex-1 overflow-y-auto p-5">
               {cart.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center py-12">
-                  <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-                    <CartIcon size={22} className="text-[#6B7A99]/40" />
-                  </div>
-                  <h4 className="text-[#0D1B3E] font-bold mb-1">Your cart is empty</h4>
+                  <CartIcon size={56} className="text-[#C4CCDB] mb-4" />
+                  <h4 className="text-[#0D1B3E] font-bold mb-1">Cart is empty</h4>
                   <p className="text-[#6B7A99] text-sm">Browse inventory to add products.</p>
                   <button onClick={() => { setIsCartOpen(false); setPage('products'); }} className="mt-5 text-[#E85D26] font-semibold text-sm hover:underline">
                     Browse Products
