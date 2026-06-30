@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, Heart,
-  Search, MapPin, Phone, MessageCircle, Package, X, ChevronLeft, Minus, Plus, Trash2, CheckCircle,
+  Search, MapPin, Phone, MessageCircle, Package, X, ChevronLeft, ChevronRight, Minus, Plus, Trash2, CheckCircle,
   User, LogOut, ChevronDown, Wrench, Camera, Wifi
 } from 'lucide-react';
 import { FloatingDock, type FloatingDockItem } from '@/components/ui/floating-dock';
@@ -107,6 +107,7 @@ export default function ForttuneApp() {
   const [isLoading, setIsLoading] = useState(true);
   
   const [page, setPage] = useState('home');
+  const expertiseScrollRef = useRef<HTMLDivElement>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [pdpQty, setPdpQty] = useState(1);
 
@@ -1075,8 +1076,8 @@ export default function ForttuneApp() {
               </div>
             </div>
 
-            {/* SERVICES — alternating spec rows */}
-            <div className="max-w-6xl mx-auto px-5 md:px-10">
+            {/* SERVICES — full-bleed split panels */}
+            <div>
               {[
                 {
                   icon: Wrench,
@@ -1084,6 +1085,7 @@ export default function ForttuneApp() {
                   title: 'Notebook & Desktop Repair',
                   body: "Water damage, a crashed hard drive, a fault nobody can name — when a machine goes down it stalls the whole day. Our bench has 10+ years of hands-on repair experience across every size, style and type of computer, plus a preventive check-up program built to catch problems before they cost you a day's work.",
                   tags: ['Preventive check-ups', 'Hardware diagnostics', 'Component-level repair', 'Performance tuning'],
+                  panelBg: '#0D1B3E',
                 },
                 {
                   icon: Camera,
@@ -1091,6 +1093,7 @@ export default function ForttuneApp() {
                   title: 'CCTV Installation',
                   body: 'Professional-grade surveillance, planned and installed by people who do this for a living. We design indoor and outdoor coverage, IP video systems and video analytics around your premises — not a generic kit, a system that covers every angle that actually matters to you, day or night.',
                   tags: ['IP video surveillance', '30m+ night clarity', 'Intruder deterrence', 'Remote receiving centre', 'Monitor from anywhere'],
+                  panelBg: '#13234d',
                 },
                 {
                   icon: Wifi,
@@ -1098,26 +1101,118 @@ export default function ForttuneApp() {
                   title: 'Networking & Wi-Fi',
                   body: 'From a single office LAN to a multi-site WAN rollout, our partners and technical team carry the project from design through installation to post-deployment support — built for strong coverage, easy provisioning, and enough headroom for every device your team adds next.',
                   tags: ['Wireless LAN', 'Outdoor Wi-Fi', 'Network security', 'Guest access', 'BYOD ready'],
+                  panelBg: '#0D1B3E',
                 },
-              ].map(({ icon: Icon, eyebrow, title, body, tags }, i) => (
-                <div key={title} className={`grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 md:gap-10 py-10 md:py-14 ${i !== 0 ? 'border-t border-[#0D1B3E]/10' : ''}`}>
-                  <div className="flex md:flex-col items-center md:items-start gap-3 md:gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#0D1B3E] flex items-center justify-center shrink-0">
-                      <Icon size={24} className="text-[#E85D26]" />
-                    </div>
-                    <span className="text-[11px] font-bold uppercase tracking-[2px] text-[#E85D26]">{eyebrow}</span>
+              ].map(({ icon: Icon, eyebrow, title, body, tags, panelBg }, i) => (
+                <div
+                  key={title}
+                  className={`grid grid-cols-1 lg:grid-cols-2 ${i !== 0 ? 'border-t border-[#0D1B3E]/10' : ''}`}
+                >
+                  {/* TEXT SIDE */}
+                  <div className={`flex items-center px-5 md:px-10 lg:px-16 py-14 md:py-20 ${i % 2 === 1 ? 'lg:order-2' : ''}`}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.4 }}
+                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                      className="max-w-md"
+                    >
+                      <motion.span
+                        initial={{ opacity: 0, y: 8 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.4 }}
+                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                        className="text-[11px] font-bold uppercase tracking-[2px] text-[#E85D26] mb-3 block"
+                      >
+                        {eyebrow}
+                      </motion.span>
+                      <motion.h3
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.4 }}
+                        transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+                        className="text-3xl md:text-[40px] font-extrabold text-[#0D1B3E] tracking-tight leading-[1.05] mb-5"
+                      >
+                        {title}
+                      </motion.h3>
+                      <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.4 }}
+                        transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                        className="text-[#6B7A99] text-[15px] leading-relaxed mb-6"
+                      >
+                        {body}
+                      </motion.p>
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.4 }}
+                        transition={{ duration: 0.5, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                        className="flex flex-wrap gap-2"
+                      >
+                        {tags.map(t => (
+                          <span key={t} className="text-[12px] font-medium text-[#0D1B3E] bg-[#F5F6FA] border border-[#0D1B3E]/8 px-3 py-1.5 rounded-full">
+                            {t}
+                          </span>
+                        ))}
+                      </motion.div>
+                    </motion.div>
                   </div>
-                  <div>
-                    <h3 className="text-2xl md:text-[28px] font-bold text-[#0D1B3E] tracking-tight mb-4">{title}</h3>
-                    <p className="text-[#6B7A99] text-[15px] leading-relaxed mb-5 max-w-2xl">{body}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map(t => (
-                        <span key={t} className="text-[12px] font-medium text-[#0D1B3E] bg-[#F5F6FA] border border-[#0D1B3E]/8 px-3 py-1.5 rounded-full">
-                          {t}
-                        </span>
+
+                  {/* ILLUSTRATION SIDE */}
+                  <motion.div
+                    initial={{ opacity: 0, clipPath: 'inset(0 0 100% 0)' }}
+                    whileInView={{ opacity: 1, clipPath: 'inset(0 0 0% 0)' }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                    className={`relative overflow-hidden min-h-[320px] md:min-h-[420px] ${i % 2 === 1 ? 'lg:order-1' : ''}`}
+                    style={{ background: panelBg }}
+                  >
+                    {/* radiating lines */}
+                    <svg viewBox="0 0 600 500" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
+                      {[
+                        [300, 250, 40, 30], [300, 250, 560, 40], [300, 250, 580, 220],
+                        [300, 250, 560, 460], [300, 250, 60, 470], [300, 250, 20, 240],
+                        [300, 250, 150, 10], [300, 250, 460, 10],
+                      ].map(([x1, y1, x2, y2], idx) => (
+                        <motion.line
+                          key={idx}
+                          x1={x1} y1={y1} x2={x2} y2={y2}
+                          stroke="#E85D26" strokeOpacity="0.45" strokeWidth="1.5"
+                          initial={{ pathLength: 0, opacity: 0 }}
+                          whileInView={{ pathLength: 1, opacity: 1 }}
+                          viewport={{ once: true, amount: 0.3 }}
+                          transition={{ duration: 1, delay: 0.1 + idx * 0.05, ease: 'easeOut' }}
+                        />
                       ))}
-                    </div>
-                  </div>
+                      {/* floating shapes */}
+                      <motion.rect x="60" y="80" width="10" height="10" fill="#E85D26" opacity="0.7"
+                        animate={{ y: [80, 65, 80] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
+                      <motion.circle cx="520" cy="120" r="5" fill="#fff" opacity="0.4"
+                        animate={{ y: [120, 135, 120] }} transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }} />
+                      <motion.rect x="500" y="380" width="14" height="14" fill="#E85D26" opacity="0.5" transform="rotate(20 507 387)"
+                        animate={{ y: [380, 395, 380] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} />
+                      <motion.circle cx="90" cy="400" r="4" fill="#fff" opacity="0.5"
+                        animate={{ y: [400, 388, 400] }} transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut' }} />
+                      <motion.path d="M460 230 l5 -8 5 8 -5 8 z" fill="#E85D26" opacity="0.6"
+                        animate={{ rotate: [0, 15, 0] }} style={{ transformOrigin: '465px 230px' }}
+                        transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }} />
+                    </svg>
+
+                    {/* central icon badge */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.7, rotate: -6 }}
+                      whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-[28%] border-[3px] border-[#F5F1E3] flex items-center justify-center bg-white/[0.03]">
+                        <Icon size={56} className="text-[#F5F1E3]" strokeWidth={1.6} />
+                      </div>
+                    </motion.div>
+                  </motion.div>
                 </div>
               ))}
             </div>
@@ -1171,19 +1266,33 @@ export default function ForttuneApp() {
             {/* STORY — split layout */}
             <div className="max-w-6xl mx-auto px-5 md:px-10 py-14 md:py-20">
               <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8 md:gap-14">
-                <h2 className="text-[#0D1B3E] text-2xl md:text-[28px] font-extrabold tracking-tight leading-tight">
+                <motion.h2
+                  initial={{ opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-[#0D1B3E] text-2xl md:text-[28px] font-extrabold tracking-tight leading-tight"
+                >
                   Built on relationships the industry already trusted.
-                </h2>
+                </motion.h2>
                 <div className="space-y-5 text-[#6B7A99] text-[15px] leading-relaxed border-l border-[#0D1B3E]/10 pl-6 md:pl-10">
-                  <p>
-                    Forttune focusses on technology distribution — PCs, Notebooks, Servers & Storages, Printers and high-quality peripherals — working closely with channel partners to fulfil hardware and software requirements across the island. Multiple global brands and hundreds of partners run through that one connection.
-                  </p>
-                  <p>
-                    That expertise traces back to Forttune's founder: an IT distribution specialist with 20 years in the industry and 600+ reseller engagements behind him, giving the company a read on local market dynamics that's hard to fake. That same integrity with partners is what creates unique value for the brands who work with us.
-                  </p>
-                  <p>
-                    The reseller network reaches every region, with Bell Store extending that further into retail. On the corporate side, the team has delivered top-tier installations across Servers, Switches, Storage, Virtualization, back-office integration, Email, Directory and Network Services.
-                  </p>
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.6, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+                    className="space-y-5"
+                  >
+                    <p>
+                      Forttune focusses on technology distribution — PCs, Notebooks, Servers & Storages, Printers and high-quality peripherals — working closely with channel partners to fulfil hardware and software requirements across the island. Multiple global brands and hundreds of partners run through that one connection.
+                    </p>
+                    <p>
+                      That expertise traces back to Forttune's founder: an IT distribution specialist with 20 years in the industry and 600+ reseller engagements behind him, giving the company a read on local market dynamics that's hard to fake. That same integrity with partners is what creates unique value for the brands who work with us.
+                    </p>
+                    <p>
+                      The reseller network reaches every region, with Bell Store extending that further into retail. On the corporate side, the team has delivered top-tier installations across Servers, Switches, Storage, Virtualization, back-office integration, Email, Directory and Network Services.
+                    </p>
+                  </motion.div>
                 </div>
               </div>
             </div>
@@ -1191,45 +1300,148 @@ export default function ForttuneApp() {
             {/* MISSION / VISION */}
             <div className="bg-[#F5F6FA] border-y border-[#0D1B3E]/8">
               <div className="max-w-6xl mx-auto px-5 md:px-10 py-14 md:py-20 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-14">
-                <div>
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                >
                   <span className="text-[11px] font-bold uppercase tracking-[2px] text-[#E85D26] mb-3 block">Mission</span>
                   <p className="text-[#0D1B3E] text-xl md:text-2xl font-semibold tracking-tight leading-snug">
                     To be a reliable supplier of Information Technology products and services through omni-channel.
                   </p>
-                </div>
-                <div>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+                >
                   <span className="text-[11px] font-bold uppercase tracking-[2px] text-[#E85D26] mb-3 block">Vision</span>
                   <p className="text-[#0D1B3E] text-xl md:text-2xl font-semibold tracking-tight leading-snug">
                     Enhance the customer experience and people's lifestyle by delivering high-quality technology efficiently, as a sustainable organization for the country.
                   </p>
-                </div>
+                </motion.div>
               </div>
             </div>
 
-            {/* EXPERTISE — spec rows */}
-            <div className="max-w-6xl mx-auto px-5 md:px-10">
-              {[
-                ['Partner Reach', 'Well engaged with every Province, District and Region in the country — the accessibility behind every brand we represent.'],
-                ['Adaptability', "We adjust our conditions to a moving technology market, so the benefit reaches our stakeholders, not just us."],
-                ['Integrity', 'A dependable technology provider to vendors, partners and customers alike — that reputation is the product.'],
-                ['Teamwork', 'One team across vendors, partners and customers, geared toward a single outcome: the team succeeds together.'],
-                ['After Sales Support', "A platform only stays useful if it's maintained. We stay on it for timely upgrades, long after the sale closes."],
-              ].map(([title, body], i) => (
-                <div key={title} className={`grid grid-cols-1 md:grid-cols-[240px_1fr] gap-3 md:gap-10 py-7 ${i !== 0 ? 'border-t border-[#0D1B3E]/10' : 'border-t border-[#0D1B3E]/10'}`}>
-                  <h4 className="text-[#0D1B3E] text-lg font-bold tracking-tight">{title}</h4>
-                  <p className="text-[#6B7A99] text-[15px] leading-relaxed max-w-2xl">{body}</p>
-                </div>
-              ))}
+            {/* EXPERTISE — photo card carousel */}
+            <div className="py-14 md:py-20">
+              <div className="max-w-3xl mx-auto px-5 md:px-10 text-center mb-10 md:mb-14">
+                <motion.h2
+                  initial={{ opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-black text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-6"
+                >
+                  Tailored expertise<br/>for every challenge
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-[#6B7A99] text-base md:text-lg leading-relaxed"
+                >
+                  What sets us apart isn't just the hardware — it's the people, the reach, and the follow-through behind every partnership.
+                </motion.p>
+              </div>
+
+              <div className="max-w-6xl mx-auto px-5 md:px-10 flex justify-end gap-2 mb-4">
+                <button
+                  onClick={() => expertiseScrollRef.current?.scrollBy({ left: -340, behavior: 'smooth' })}
+                  className="w-10 h-10 rounded-full border border-[#0D1B3E]/15 flex items-center justify-center hover:bg-[#0D1B3E] hover:text-white hover:border-[#0D1B3E] transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={() => expertiseScrollRef.current?.scrollBy({ left: 340, behavior: 'smooth' })}
+                  className="w-10 h-10 rounded-full border border-[#0D1B3E]/15 flex items-center justify-center hover:bg-[#0D1B3E] hover:text-white hover:border-[#0D1B3E] transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+
+              <div
+                ref={expertiseScrollRef}
+                className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory px-5 md:px-10 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {[
+                  {
+                    title: 'Partner Reach',
+                    body: 'Well engaged with every Province, District and Region in the country — the accessibility behind every brand we represent.',
+                    image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80',
+                  },
+                  {
+                    title: 'Adaptability',
+                    body: "We adjust our conditions to a moving technology market, so the benefit reaches our stakeholders, not just us.",
+                    image: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=900&q=80',
+                  },
+                  {
+                    title: 'Integrity',
+                    body: 'A dependable technology provider to vendors, partners and customers alike — that reputation is the product.',
+                    image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&q=80',
+                  },
+                  {
+                    title: 'Teamwork',
+                    body: 'One team across vendors, partners and customers, geared toward a single outcome: the team succeeds together.',
+                    image: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=900&q=80',
+                  },
+                  {
+                    title: 'After Sales Support',
+                    body: "A platform only stays useful if it's maintained. We stay on it for timely upgrades, long after the sale closes.",
+                    image: 'https://images.unsplash.com/photo-1553775282-20af80779df7?w=900&q=80',
+                  },
+                ].map(({ title, body, image }, i) => (
+                  <motion.div
+                    key={title}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.55, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                    className="group relative rounded-2xl overflow-hidden aspect-[4/5] shadow-sm cursor-pointer shrink-0 snap-start w-[78%] xs:w-[60%] sm:w-[300px]"
+                  >
+                    <img
+                      src={image}
+                      alt={title}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0D1B3E]/90 via-[#0D1B3E]/10 to-transparent" />
+                    <div className="absolute inset-0 p-5 flex flex-col justify-end">
+                      <span className="inline-block w-fit text-[12px] font-bold uppercase tracking-[1.5px] text-white bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-md mb-2">
+                        {title}
+                      </span>
+                      <p className="text-white/85 text-[13px] leading-relaxed overflow-hidden max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-[max-height,opacity] duration-500 ease-out">
+                        {body}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
 
             {/* LEADERSHIP */}
             <div className="max-w-6xl mx-auto px-5 md:px-10 py-16 md:py-24">
               <span className="text-[11px] font-bold uppercase tracking-[2px] text-[#E85D26] mb-6 block">Leadership</span>
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8 md:gap-14 items-start">
-                <div className="w-28 h-28 md:w-full md:h-auto md:aspect-square rounded-3xl bg-[#0D1B3E] flex items-center justify-center mx-auto md:mx-0">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                  className="w-28 h-28 md:w-full md:h-auto md:aspect-square rounded-3xl bg-[#0D1B3E] flex items-center justify-center mx-auto md:mx-0"
+                >
                   <span className="text-white text-4xl font-extrabold tracking-tight">GS</span>
-                </div>
-                <div>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+                >
                   <h3 className="text-[#0D1B3E] text-2xl md:text-3xl font-extrabold tracking-tight mb-1">Gnanam Sellathurrai</h3>
                   <div className="text-[#E85D26] text-[12px] font-bold uppercase tracking-wider mb-5">Founder & CEO, Forttune Channels (Pvt) Ltd</div>
                   <div className="space-y-4 text-[#6B7A99] text-[15px] leading-relaxed">
@@ -1243,7 +1455,7 @@ export default function ForttuneApp() {
                       He holds an MBA from Mahatma Gandhi University, India, and previously held senior roles at Redington SL, Tech Pacific Lanka, Samson Information Technologies, and Engenuity. He remains an active Executive Council Member of FITIS (Federation of Information Technology Industry in Sri Lanka), Hardware Chapter.
                     </p>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
 
