@@ -108,6 +108,7 @@ export default function ForttuneApp() {
   
   const [page, setPage] = useState('home');
   const expertiseScrollRef = useRef<HTMLDivElement>(null);
+  const homeExpertiseScrollRef = useRef<HTMLDivElement>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [pdpQty, setPdpQty] = useState(1);
 
@@ -937,6 +938,104 @@ export default function ForttuneApp() {
                 )}
               </div>
             </div>
+
+            {/* EXPERTISE — photo card carousel */}
+            <div className="py-14 md:py-20">
+              <div className="max-w-3xl mx-auto px-5 md:px-10 text-center mb-10 md:mb-14">
+                <motion.h2
+                  initial={{ opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-black text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-6"
+                >
+                  Tailored expertise<br/>for every challenge
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-[#6B7A99] text-base md:text-lg leading-relaxed"
+                >
+                  What sets us apart isn't just the hardware — it's the people, the reach, and the follow-through behind every partnership.
+                </motion.p>
+              </div>
+
+              <div className="max-w-6xl mx-auto px-5 md:px-10 flex justify-end gap-2 mb-4">
+                <button
+                  onClick={() => homeExpertiseScrollRef.current?.scrollBy({ left: -340, behavior: 'smooth' })}
+                  className="w-10 h-10 rounded-full border border-[#0D1B3E]/15 flex items-center justify-center hover:bg-[#0D1B3E] hover:text-white hover:border-[#0D1B3E] transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={() => homeExpertiseScrollRef.current?.scrollBy({ left: 340, behavior: 'smooth' })}
+                  className="w-10 h-10 rounded-full border border-[#0D1B3E]/15 flex items-center justify-center hover:bg-[#0D1B3E] hover:text-white hover:border-[#0D1B3E] transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+
+              <div
+                ref={homeExpertiseScrollRef}
+                className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory px-5 md:px-10 pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {[
+                  {
+                    title: 'Partner Reach',
+                    body: 'Well engaged with every Province, District and Region in the country — the accessibility behind every brand we represent.',
+                    image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80',
+                  },
+                  {
+                    title: 'Adaptability',
+                    body: "We adjust our conditions to a moving technology market, so the benefit reaches our stakeholders, not just us.",
+                    image: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=900&q=80',
+                  },
+                  {
+                    title: 'Integrity',
+                    body: 'A dependable technology provider to vendors, partners and customers alike — that reputation is the product.',
+                    image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&q=80',
+                  },
+                  {
+                    title: 'Teamwork',
+                    body: 'One team across vendors, partners and customers, geared toward a single outcome: the team succeeds together.',
+                    image: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=900&q=80',
+                  },
+                  {
+                    title: 'After Sales Support',
+                    body: "A platform only stays useful if it's maintained. We stay on it for timely upgrades, long after the sale closes.",
+                    image: 'https://images.unsplash.com/photo-1553775282-20af80779df7?w=900&q=80',
+                  },
+                ].map(({ title, body, image }, i) => (
+                  <motion.div
+                    key={title}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.55, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                    className="group relative overflow-hidden aspect-square shadow-sm cursor-pointer shrink-0 snap-start w-[78%] xs:w-[60%] sm:w-[300px]"
+                  >
+                    <img
+                      src={image}
+                      alt={title}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0D1B3E]/90 via-[#0D1B3E]/10 to-transparent" />
+                    <div className="absolute inset-0 p-5 flex flex-col justify-end">
+                      <span className="inline-block w-fit text-[12px] font-bold uppercase tracking-[1.5px] text-white bg-white/15 backdrop-blur-sm px-3 py-1.5 rounded-md mb-2">
+                        {title}
+                      </span>
+                      <p className="text-white/85 text-[13px] leading-relaxed overflow-hidden max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 transition-[max-height,opacity] duration-500 ease-out">
+                        {body}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
@@ -1086,6 +1185,7 @@ export default function ForttuneApp() {
                   body: "Water damage, a crashed hard drive, a fault nobody can name — when a machine goes down it stalls the whole day. Our bench has 10+ years of hands-on repair experience across every size, style and type of computer, plus a preventive check-up program built to catch problems before they cost you a day's work.",
                   tags: ['Preventive check-ups', 'Hardware diagnostics', 'Component-level repair', 'Performance tuning'],
                   panelBg: '#0D1B3E',
+                  image: 'https://images.unsplash.com/photo-1517059224940-d4af9eec41b7?w=1000&q=80',
                 },
                 {
                   icon: Camera,
@@ -1094,6 +1194,7 @@ export default function ForttuneApp() {
                   body: 'Professional-grade surveillance, planned and installed by people who do this for a living. We design indoor and outdoor coverage, IP video systems and video analytics around your premises — not a generic kit, a system that covers every angle that actually matters to you, day or night.',
                   tags: ['IP video surveillance', '30m+ night clarity', 'Intruder deterrence', 'Remote receiving centre', 'Monitor from anywhere'],
                   panelBg: '#13234d',
+                  image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=1000&q=80',
                 },
                 {
                   icon: Wifi,
@@ -1102,8 +1203,9 @@ export default function ForttuneApp() {
                   body: 'From a single office LAN to a multi-site WAN rollout, our partners and technical team carry the project from design through installation to post-deployment support — built for strong coverage, easy provisioning, and enough headroom for every device your team adds next.',
                   tags: ['Wireless LAN', 'Outdoor Wi-Fi', 'Network security', 'Guest access', 'BYOD ready'],
                   panelBg: '#0D1B3E',
+                  image: 'https://images.unsplash.com/photo-1606904825846-647eb07f5be2?w=1000&q=80',
                 },
-              ].map(({ icon: Icon, eyebrow, title, body, tags, panelBg }, i) => (
+              ].map(({ icon: Icon, eyebrow, title, body, tags, panelBg, image }, i) => (
                 <div
                   key={title}
                   className={`grid grid-cols-1 lg:grid-cols-2 ${i !== 0 ? 'border-t border-[#0D1B3E]/10' : ''}`}
@@ -1169,6 +1271,14 @@ export default function ForttuneApp() {
                     className={`relative overflow-hidden min-h-[320px] md:min-h-[420px] ${i % 2 === 1 ? 'lg:order-1' : ''}`}
                     style={{ background: panelBg }}
                   >
+                    {/* photo */}
+                    <img
+                      src={image}
+                      alt={title}
+                      className="absolute inset-0 w-full h-full object-cover opacity-40"
+                    />
+                    <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${panelBg}cc, ${panelBg}f2)` }} />
+
                     {/* radiating lines */}
                     <svg viewBox="0 0 600 500" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
                       {[
@@ -1253,11 +1363,25 @@ export default function ForttuneApp() {
 
                 {/* STAT ROW */}
                 <div className="grid grid-cols-3 gap-6 md:gap-10 mt-12 max-w-xl">
-                  {[['20+', 'Years of distribution expertise'], ['600+', 'Reseller engagements'], ['2020', 'Forttune founded']].map(([num, label]) => (
-                    <div key={label}>
-                      <div className="text-white text-3xl md:text-4xl font-extrabold tracking-tight mb-1">{num}</div>
+                  {[['20+', 'Years of distribution expertise'], ['600+', 'Reseller engagements'], ['2020', 'Forttune founded']].map(([num, label], i) => (
+                    <motion.div
+                      key={label}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.6 }}
+                      transition={{ duration: 0.55, delay: 0.15 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.7 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true, amount: 0.6 }}
+                        transition={{ duration: 0.5, delay: 0.25 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                        className="text-white text-3xl md:text-4xl font-extrabold tracking-tight mb-1"
+                      >
+                        {num}
+                      </motion.div>
                       <div className="text-white/50 text-[12px] leading-snug">{label}</div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -1402,7 +1526,7 @@ export default function ForttuneApp() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.3 }}
                     transition={{ duration: 0.55, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
-                    className="group relative rounded-2xl overflow-hidden aspect-[4/5] shadow-sm cursor-pointer shrink-0 snap-start w-[78%] xs:w-[60%] sm:w-[300px]"
+                    className="group relative overflow-hidden aspect-square shadow-sm cursor-pointer shrink-0 snap-start w-[78%] xs:w-[60%] sm:w-[300px]"
                   >
                     <img
                       src={image}
