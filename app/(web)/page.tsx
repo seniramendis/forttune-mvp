@@ -1263,11 +1263,7 @@ export default function ForttuneApp() {
                   </div>
 
                   {/* ILLUSTRATION SIDE */}
-                  <motion.div
-                    initial={{ opacity: 0, clipPath: 'inset(0 0 100% 0)' }}
-                    whileInView={{ opacity: 1, clipPath: 'inset(0 0 0% 0)' }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  <div
                     className={`relative overflow-hidden min-h-[320px] md:min-h-[420px] ${i % 2 === 1 ? 'lg:order-1' : ''}`}
                     style={{ background: panelBg }}
                   >
@@ -1275,9 +1271,10 @@ export default function ForttuneApp() {
                     <img
                       src={image}
                       alt={title}
-                      className="absolute inset-0 w-full h-full object-cover opacity-40"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
-                    <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${panelBg}cc, ${panelBg}f2)` }} />
+                    <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${panelBg}33, ${panelBg}99)` }} />
 
                     {/* radiating lines */}
                     <svg viewBox="0 0 600 500" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
@@ -1322,7 +1319,7 @@ export default function ForttuneApp() {
                         <Icon size={56} className="text-[#F5F1E3]" strokeWidth={1.6} />
                       </div>
                     </motion.div>
-                  </motion.div>
+                  </div>
                 </div>
               ))}
             </div>
