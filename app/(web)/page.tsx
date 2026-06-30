@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, Heart,
   Search, MapPin, Phone, MessageCircle, Package, X, ChevronLeft, Minus, Plus, Trash2, CheckCircle,
-  User, LogOut, ChevronDown
+  User, LogOut, ChevronDown, Wrench, Camera, Wifi
 } from 'lucide-react';
 import { FloatingDock, type FloatingDockItem } from '@/components/ui/floating-dock';
 import {
@@ -16,6 +16,8 @@ import {
   IconPhone,
   IconUserCircle,
   IconLogin2,
+  IconInfoCircle,
+  IconTool,
 } from '@tabler/icons-react';
 
 const CATEGORIES = ['All', 'Laptops', 'Desktops', 'Monitors', 'Networking', 'Printers', 'Servers', 'Storage', 'Accessories'];
@@ -564,6 +566,18 @@ export default function ForttuneApp() {
                     onClick: () => { setPage('contact'); window.scrollTo(0, 0); },
                     active: page === 'contact',
                   },
+                  {
+                    title: 'Services',
+                    icon: <IconTool className="h-full w-full text-black" />,
+                    onClick: () => { setPage('services'); window.scrollTo(0, 0); },
+                    active: page === 'services',
+                  },
+                  {
+                    title: 'About',
+                    icon: <IconInfoCircle className="h-full w-full text-black" />,
+                    onClick: () => { setPage('about'); window.scrollTo(0, 0); },
+                    active: page === 'about',
+                  },
                 ];
                 return dock;
               })()}
@@ -1036,6 +1050,184 @@ export default function ForttuneApp() {
                     {contactSending ? 'Sending…' : 'Send Inquiry'}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PAGE: SERVICES */}
+        {page === 'services' && (
+          <div>
+            <div className="bg-[#0D1B3E] border-b border-[#0D1B3E]/8">
+              <div className="max-w-5xl mx-auto px-5 md:px-10 py-14 text-center">
+                <div className="inline-block bg-[#E85D26] text-white text-[10px] font-bold tracking-[1.2px] uppercase px-3 py-1.5 rounded-full mb-5">
+                  What We Offer
+                </div>
+                <h1 className="text-white text-3xl md:text-4xl font-extrabold leading-tight mb-4">Our Services</h1>
+                <p className="text-white/75 max-w-2xl mx-auto text-sm leading-relaxed">
+                  Beyond hardware distribution, Forttune's technical team supports your business with repairs, security and networking services delivered island-wide.
+                </p>
+              </div>
+            </div>
+
+            <div className="max-w-5xl mx-auto px-5 md:px-10 py-12 space-y-8">
+              {[
+                {
+                  icon: Wrench,
+                  title: 'Notebook & Desktop Repair Services',
+                  body: "Everyone relies on their notebooks and desktops for business and personal use, and a bad day — water damage, a crashed hard drive, or another fault — can turn into a major inconvenience. With over 10+ years of experienced technicians, Forttune provides comprehensive computer support services, ready to take on repairs no matter the size, style or type of computer.",
+                  bullets: ['Regular notebook and desktop preventive check-ups', 'Hardware diagnostics and component repair', 'Performance optimization to avoid future problems'],
+                },
+                {
+                  icon: Camera,
+                  title: 'CCTV Installation Service',
+                  body: 'Protect your assets with professional business CCTV systems using state-of-the-art cameras to monitor your property, people and operations 24 hours a day. Our team has years of experience planning, customizing and installing comprehensive CCTV systems, including IP video surveillance, indoor and outdoor cameras, and cutting-edge video analytics tailored to your premises.',
+                  bullets: [
+                    'Crime prevention, detection and monitoring',
+                    'Clear images day and night at ranges up to 30 metres',
+                    'Audible warnings to deter intruders',
+                    'Automatic connection to a remote video receiving centre',
+                    'Access to your business CCTV from anywhere',
+                  ],
+                },
+                {
+                  icon: Wifi,
+                  title: 'Networking & WiFi Solutions for Home & Office',
+                  body: 'Forttune offers high-performance networking with strong Wi-Fi coverage, fast and easy provisioning through a built-in controller, and support for a large number of clients per access point. Whether implementing a LAN or WAN solution as part of a larger infrastructure project or a one-off deployment, our technical and support teams guide you through design, installation and post-deployment.',
+                  bullets: ['Wireless LAN', 'Outdoor Wi-Fi', 'Network security', 'Guest Wi-Fi access', 'Bring Your Own Device (BYOD)'],
+                },
+              ].map(({ icon: Icon, title, body, bullets }) => (
+                <div key={title} className="bg-white border border-[#0D1B3E]/8 rounded-2xl p-8 shadow-sm">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-[#E85D26]/8 flex items-center justify-center shrink-0">
+                      <Icon size={22} className="text-[#E85D26]" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#0D1B3E] pt-1.5">{title}</h3>
+                  </div>
+                  <p className="text-[#6B7A99] text-sm leading-relaxed mb-5">{body}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {bullets.map(b => (
+                      <div key={b} className="flex items-start gap-2">
+                        <CheckCircle size={14} className="text-[#1D9E75] mt-0.5 shrink-0" />
+                        <span className="text-[#0D1B3E] text-[13px] leading-snug">{b}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* CTA */}
+              <div className="bg-[#0D1B3E] rounded-2xl p-10 text-center">
+                <h3 className="text-white text-xl font-bold mb-3">Need a service from our team?</h3>
+                <p className="text-white/70 text-sm max-w-md mx-auto mb-6">
+                  Get in touch and we'll match you with the right specialist for your repair, security or networking needs.
+                </p>
+                <button onClick={() => { setPage('contact'); window.scrollTo(0, 0); }} className="bg-[#E85D26] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-[#f47a4a] transition-colors">
+                  Contact Us
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PAGE: ABOUT */}
+        {page === 'about' && (
+          <div>
+            <div className="bg-[#0D1B3E] border-b border-[#0D1B3E]/8">
+              <div className="max-w-5xl mx-auto px-5 md:px-10 py-14 text-center">
+                <div className="inline-block bg-[#E85D26] text-white text-[10px] font-bold tracking-[1.2px] uppercase px-3 py-1.5 rounded-full mb-5">
+                  Who We Are
+                </div>
+                <h1 className="text-white text-3xl md:text-4xl font-extrabold leading-tight mb-4">About Forttune</h1>
+                <p className="text-white/75 max-w-2xl mx-auto text-sm leading-relaxed">
+                  Forttune was founded as an Information Technology company to fulfil the vast areas of technology requirements, focusing on technology distribution and working closely with channel partners across Sri Lanka.
+                </p>
+              </div>
+            </div>
+
+            <div className="max-w-5xl mx-auto px-5 md:px-10 py-12 space-y-14">
+              {/* INTRO */}
+              <div className="space-y-4 text-[#0D1B3E]/80 text-sm leading-relaxed">
+                <p>
+                  Forttune mainly focusses on technology distribution, working closely with its channel partners in fulfilling hardware and software requirements across PCs, Notebooks, Servers & Storages, Printers and high-quality peripherals. Forttune connects multiple brands with hundreds of channel partners island-wide.
+                </p>
+                <p>
+                  The expertise behind Forttune comes from its founder, an IT distribution specialist with 20 years of experience and over 600+ reseller engagements — giving the company a strong understanding of local market dynamics and unique value for the brands it represents.
+                </p>
+                <p>
+                  Forttune reaches the market through its reseller base across the country, and further partners with Bell Store to reach retail customers nationwide. The corporate-focused team has completed top-tier installations across Servers, Switches, Storage, Virtualization, back-office system integration, Email and Directory and Network Services.
+                </p>
+              </div>
+
+              {/* MISSION / VISION */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white border border-[#0D1B3E]/8 rounded-2xl p-8 shadow-sm">
+                  <h3 className="text-base font-bold text-[#0D1B3E] mb-3">Mission</h3>
+                  <p className="text-[#6B7A99] text-sm leading-relaxed">
+                    To be a reliable supplier of Information Technology products and services through omni-channel.
+                  </p>
+                </div>
+                <div className="bg-white border border-[#0D1B3E]/8 rounded-2xl p-8 shadow-sm">
+                  <h3 className="text-base font-bold text-[#0D1B3E] mb-3">Vision</h3>
+                  <p className="text-[#6B7A99] text-sm leading-relaxed">
+                    Enhance the customer experience and people's lifestyle by delivering high-quality technological products and services efficiently, as a sustainable organization for the country.
+                  </p>
+                </div>
+              </div>
+
+              {/* OUR EXPERTISE */}
+              <div>
+                <h2 className="text-lg font-bold text-[#0D1B3E] mb-6 text-center">Our Expertise</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    ['Partner Reach', 'Well engaged with all the Provinces, Districts and Regions in the country, giving the best accessibility to the products we carry and the brands we represent.'],
+                    ['Adaptability', 'We adjust our conditions to the dynamic technology world to pass the benefit on to our stakeholders.'],
+                    ['Integrity', 'We work very closely with our vendors, partners and customers as a dependable technology provider.'],
+                    ['Teamwork', 'Our team is geared to provide robust products and solutions, working with vendors, partners and customers as one single team.'],
+                    ['After Sales Support', 'Technology needs careful monitoring for timely upgrades and maintenance — we are dedicated to keeping the platform up to standard.'],
+                  ].map(([title, body]) => (
+                    <div key={title} className="bg-white border border-[#0D1B3E]/8 rounded-2xl p-6">
+                      <h4 className="text-sm font-bold text-[#0D1B3E] mb-2">{title}</h4>
+                      <p className="text-[#6B7A99] text-[13px] leading-relaxed">{body}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* LEADERSHIP */}
+              <div>
+                <h2 className="text-lg font-bold text-[#0D1B3E] mb-6 text-center">Leadership</h2>
+                <div className="bg-white border border-[#0D1B3E]/8 rounded-2xl p-8 shadow-sm flex flex-col md:flex-row gap-6">
+                  <div className="w-20 h-20 rounded-2xl bg-[#F5F6FA] flex items-center justify-center shrink-0 mx-auto md:mx-0">
+                    <User size={32} className="text-[#0D1B3E]/30" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-[#0D1B3E] mb-0.5">Gnanam Sellathurrai</h4>
+                    <div className="text-[11px] font-bold text-[#E85D26] uppercase tracking-wider mb-3">Founder & CEO, Forttune Channels (Pvt) Ltd</div>
+                    <div className="space-y-3 text-[#6B7A99] text-sm leading-relaxed">
+                      <p>
+                        A visionary IT professional and entrepreneur who is responsible for the full spectrum of operation and profitability of the organization. He is a distribution specialist for computer hardware products, especially PCs and Notebooks, and founded Forttune after serving key distribution companies over 20+ years.
+                      </p>
+                      <p>
+                        Even though the company started during the COVID-19 pandemic in 2020, it steadily gained momentum and recorded remarkable revenue with strong business partner engagements, and continues to grow with a strong market presence.
+                      </p>
+                      <p>
+                        He holds a Master of Business Administration from Mahatma Gandhi University, India, and has held senior roles at Redington SL, Tech Pacific Lanka, Samson Information Technologies, and Engenuity, prior to founding Forttune. He is also an active contributor to the IT industry as an Executive Council Member of FITIS (Federation of Information Technology Industry in Sri Lanka), Hardware Chapter.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="bg-[#0D1B3E] rounded-2xl p-10 text-center">
+                <h3 className="text-white text-xl font-bold mb-3">Let's work together</h3>
+                <p className="text-white/70 text-sm max-w-md mx-auto mb-6">
+                  Reach out to our team in Mount Lavinia for bulk orders, partnership enquiries, or support.
+                </p>
+                <button onClick={() => { setPage('contact'); window.scrollTo(0, 0); }} className="bg-[#E85D26] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-[#f47a4a] transition-colors">
+                  Contact Us
+                </button>
               </div>
             </div>
           </div>
