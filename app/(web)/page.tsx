@@ -539,8 +539,55 @@ export default function ForttuneApp() {
             />
           </div>
 
-          {/* CENTER NAV LINKS now live in the floating dock at the bottom of the screen */}
-
+          {/* CENTER NAV — floating dock */}
+          <div className="flex-1 flex items-center justify-center">
+            <FloatingDock
+              desktopClassName="h-12 px-3 pb-1.5 shadow-none border-none bg-transparent"
+              mobileClassName="relative"
+              items={(() => {
+                const dock: FloatingDockItem[] = [
+                  {
+                    title: 'Home',
+                    icon: <IconHome className="h-full w-full text-[#6B7A99]" />,
+                    onClick: () => { setPage('home'); window.scrollTo(0, 0); },
+                    active: page === 'home',
+                  },
+                  {
+                    title: 'Products',
+                    icon: <IconDeviceLaptop className="h-full w-full text-[#6B7A99]" />,
+                    onClick: () => { setPage('products'); window.scrollTo(0, 0); },
+                    active: page === 'products' || page === 'product-detail',
+                  },
+                  {
+                    title: 'Cart',
+                    icon: <IconShoppingCart className="h-full w-full text-[#6B7A99]" />,
+                    onClick: () => setIsCartOpen(true),
+                    badge: cartCount > 0 ? cartCount : undefined,
+                  },
+                  {
+                    title: 'Contact',
+                    icon: <IconPhone className="h-full w-full text-[#6B7A99]" />,
+                    onClick: () => { setPage('contact'); window.scrollTo(0, 0); },
+                    active: page === 'contact',
+                  },
+                ];
+                if (currentUser) {
+                  dock.push({
+                    title: 'Account',
+                    icon: <IconUserCircle className="h-full w-full text-[#6B7A99]" />,
+                    href: currentUser.role === 'ADMIN' ? '/admin' : '/dashboard',
+                  });
+                } else {
+                  dock.push({
+                    title: 'Sign In',
+                    icon: <IconLogin2 className="h-full w-full text-[#6B7A99]" />,
+                    href: '/login',
+                  });
+                }
+                return dock;
+              })()}
+            />
+          </div>
 
           {/* RIGHT ACTIONS */}
           <div className="flex items-center gap-2">
@@ -613,55 +660,7 @@ export default function ForttuneApp() {
         </nav>
       </motion.div>
 
-      {/* FLOATING NAV DOCK — primary navigation on every screen size */}
-      <div className="fixed bottom-4 inset-x-0 z-30 flex justify-center px-4">
-        <FloatingDock
-          items={(() => {
-            const dock: FloatingDockItem[] = [
-              {
-                title: 'Home',
-                icon: <IconHome className="h-full w-full text-[#6B7A99]" />,
-                onClick: () => { setPage('home'); window.scrollTo(0, 0); },
-                active: page === 'home',
-              },
-              {
-                title: 'Products',
-                icon: <IconDeviceLaptop className="h-full w-full text-[#6B7A99]" />,
-                onClick: () => { setPage('products'); window.scrollTo(0, 0); },
-                active: page === 'products' || page === 'product-detail',
-              },
-              {
-                title: 'Cart',
-                icon: <IconShoppingCart className="h-full w-full text-[#6B7A99]" />,
-                onClick: () => setIsCartOpen(true),
-                badge: cartCount > 0 ? cartCount : undefined,
-              },
-              {
-                title: 'Contact',
-                icon: <IconPhone className="h-full w-full text-[#6B7A99]" />,
-                onClick: () => { setPage('contact'); window.scrollTo(0, 0); },
-                active: page === 'contact',
-              },
-            ];
-            if (currentUser) {
-              dock.push({
-                title: 'Account',
-                icon: <IconUserCircle className="h-full w-full text-[#6B7A99]" />,
-                href: currentUser.role === 'ADMIN' ? '/admin' : '/dashboard',
-              });
-            } else {
-              dock.push({
-                title: 'Sign In',
-                icon: <IconLogin2 className="h-full w-full text-[#6B7A99]" />,
-                href: '/login',
-              });
-            }
-            return dock;
-          })()}
-        />
-      </div>
-
-      <div className="pb-24">
+      <div>
         
         {/* PRODUCT DETAIL PAGE */}
         {page === 'product-detail' && selectedProduct && (
@@ -1089,7 +1088,7 @@ export default function ForttuneApp() {
 
       {/* TOAST */}
       {toastMsg && (
-        <div className="fixed bottom-24 sm:bottom-6 right-5 bg-[#0D1B3E] text-white py-3 px-4 rounded-xl text-sm font-medium shadow-2xl z-[100] flex items-center gap-2.5 max-w-[280px]">
+        <div className="fixed bottom-6 right-5 bg-[#0D1B3E] text-white py-3 px-4 rounded-xl text-sm font-medium shadow-2xl z-[100] flex items-center gap-2.5 max-w-[280px]">
           <CheckCircle size={14} className="text-green-400 shrink-0" />
           {toastMsg}
         </div>
