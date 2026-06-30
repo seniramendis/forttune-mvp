@@ -69,34 +69,34 @@ function FloatingDockMobile({
 }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={cn("relative block", className)}>
+    <div className={cn("relative block md:hidden", className)}>
       <AnimatePresence>
         {open && (
           <motion.div
             layoutId="forttune-dock"
-            className="absolute inset-x-0 bottom-full mb-2 flex flex-col gap-2"
+            className="absolute right-0 top-full mt-2 flex flex-col gap-2 z-50"
           >
             {items.map((item, idx) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{
                   opacity: 0,
-                  y: 10,
+                  y: -10,
                   transition: { delay: idx * 0.05 },
                 }}
-                transition={{ delay: (items.length - 1 - idx) * 0.05 }}
+                transition={{ delay: idx * 0.05 }}
               >
                 <DockLink item={item}>
                   <div
                     className={cn(
-                      "relative flex h-11 w-11 items-center justify-center rounded-full border border-[#E2E6F0] bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900",
+                      "relative flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E6F0] bg-white shadow-sm",
                       item.active && "ring-2 ring-[#E85D26]"
                     )}
                     onClick={() => setOpen(false)}
                   >
-                    <div className="h-5 w-5">{item.icon}</div>
+                    <div className="h-[18px] w-[18px]">{item.icon}</div>
                     {!!item.badge && (
                       <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#E85D26] px-1 text-[9px] font-bold leading-none text-white">
                         {item.badge}
@@ -112,9 +112,9 @@ function FloatingDockMobile({
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Toggle navigation"
-        className="flex h-12 w-12 items-center justify-center rounded-full border border-[#E2E6F0] bg-white shadow-[0_4px_24px_rgba(13,27,62,0.12)] dark:border-neutral-800 dark:bg-neutral-900"
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E6F0] bg-white shadow-sm"
       >
-        <IconLayoutNavbarCollapse className="h-5 w-5 text-[#6B7A99] dark:text-neutral-400" />
+        <IconLayoutNavbarCollapse className="h-5 w-5 text-black" />
       </button>
     </div>
   );
@@ -133,7 +133,7 @@ function FloatingDockDesktop({
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
       className={cn(
-        "mx-auto hidden h-16 items-end gap-4 rounded-2xl border border-[#E2E6F0] bg-white/95 px-4 pb-3 backdrop-blur-md shadow-[0_4px_24px_rgba(13,27,62,0.12)] md:flex dark:border-neutral-800 dark:bg-neutral-900/95",
+        "mx-auto hidden h-16 items-end gap-4 rounded-2xl border border-[#E2E6F0] bg-white px-4 pb-3 backdrop-blur-md shadow-[0_4px_24px_rgba(13,27,62,0.12)] md:flex",
         className
       )}
     >
@@ -177,17 +177,19 @@ function IconContainer({
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         className={cn(
-          "relative flex aspect-square items-center justify-center rounded-full bg-[#F5F6FA] dark:bg-neutral-800",
+          "relative z-0 flex aspect-square items-center justify-center rounded-full bg-white border border-[#E2E6F0]",
+          hovered && "z-20",
           item.active && "ring-2 ring-[#E85D26]"
         )}
       >
         <AnimatePresence>
           {hovered && (
             <motion.div
-              initial={{ opacity: 0, y: 10, x: "-50%" }}
-              animate={{ opacity: 1, y: 0, x: "-50%" }}
-              exit={{ opacity: 0, y: 2, x: "-50%" }}
-              className="absolute -top-8 left-1/2 w-fit whitespace-pre rounded-md border border-[#E2E6F0] bg-white px-2 py-0.5 text-xs text-[#0D1B3E] dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
+              initial={{ opacity: 0, x: -8, y: "-50%" }}
+              animate={{ opacity: 1, x: 0, y: "-50%" }}
+              exit={{ opacity: 0, x: -8, y: "-50%" }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="pointer-events-none absolute top-1/2 left-full ml-2 z-30 w-fit whitespace-pre rounded-md border border-[#E2E6F0] bg-white px-2 py-0.5 text-xs text-black shadow-sm"
             >
               {item.title}
             </motion.div>
