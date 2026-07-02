@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withDbRetry } from '@/lib/db-retry';
-import { broadcastReload } from './stream/route';
+import { broadcastReload } from '@/lib/product-stream';
 
 export const dynamic = 'force-dynamic';
 
