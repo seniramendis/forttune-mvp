@@ -3,9 +3,10 @@
 import Footer from '@/components/Footer';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import gsap from 'gsap';
 import { 
   ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, Heart,
-  Search, MapPin, Phone, MessageCircle, Package, X, ChevronLeft, ChevronRight, Minus, Plus, Trash2, CheckCircle,
+  Search, MessageCircle, Package, X, ChevronLeft, ChevronRight, Minus, Plus, Trash2, CheckCircle,
   User, LogOut, ChevronDown, Wrench, Camera, Wifi
 } from 'lucide-react';
 import { FloatingDock, type FloatingDockItem } from '@/components/ui/floating-dock';
@@ -122,6 +123,7 @@ export default function ForttuneApp() {
 
   // --- Add-to-cart "fly" animation state ---
   const cartIconRef = useRef<HTMLButtonElement | null>(null);
+  const cartGlyphRef = useRef<HTMLSpanElement | null>(null);
   const [flyingItems, setFlyingItems] = useState<{ id: number; x1: number; y1: number; x2: number; y2: number; image?: string }[]>([]);
   const [cartBump, setCartBump] = useState(false);
 
@@ -636,10 +638,34 @@ export default function ForttuneApp() {
               onClick={() => setIsCartOpen(true)}
               animate={cartBump ? { scale: [1, 1.25, 0.93, 1.06, 1] } : { scale: 1 }}
               transition={{ duration: 0.45, ease: 'easeOut' }}
-              className="relative w-10 h-10 flex items-center justify-center rounded-xl text-[#0D1B3E] hover:bg-[#0D1B3E]/6 transition-colors cursor-pointer"
+              onMouseEnter={() => {
+                if (!cartGlyphRef.current) return;
+                gsap.killTweensOf(cartGlyphRef.current);
+                gsap.to(cartGlyphRef.current, { scale: 1.25, duration: 0.3, ease: 'back.out(3)' });
+                gsap.fromTo(
+                  cartGlyphRef.current,
+                  { rotate: 0 },
+                  {
+                    rotate: 14,
+                    duration: 0.1,
+                    ease: 'power2.out',
+                    yoyo: true,
+                    repeat: 3,
+                    onComplete: () => gsap.set(cartGlyphRef.current, { rotate: 0 }),
+                  }
+                );
+              }}
+              onMouseLeave={() => {
+                if (!cartGlyphRef.current) return;
+                gsap.killTweensOf(cartGlyphRef.current);
+                gsap.to(cartGlyphRef.current, { scale: 1, rotate: 0, duration: 0.3, ease: 'power3.out' });
+              }}
+              className="relative w-10 h-10 flex items-center justify-center rounded-xl text-[#0D1B3E] cursor-pointer"
               aria-label="Open cart"
             >
-              <CartIcon size={20} />
+              <span ref={cartGlyphRef} className="inline-flex">
+                <CartIcon size={20} />
+              </span>
               <AnimatePresence mode="wait">
                 {cartCount > 0 && (
                   <motion.span
@@ -1150,24 +1176,41 @@ export default function ForttuneApp() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               <div className="bg-white border border-[#0D1B3E]/8 rounded-2xl p-8 shadow-sm">
-                <h3 className="text-base font-bold text-[#0D1B3E] mb-6">Headquarters</h3>
-                
-                <div className="space-y-5">
-                  {[
-                    [MapPin, 'Address', 'No. 312, Galle Road,\nMount Lavinia, Sri Lanka'],
-                    [Phone, 'General Line', '+94 112 638 538'],
-                    [MessageCircle, 'WhatsApp Sales', '+94 725 516 516'],
-                  ].map(([Icon, label, value]: any) => (
-                    <div key={label} className="flex gap-3.5">
-                      <div className="w-9 h-9 rounded-xl bg-[#E85D26]/8 flex items-center justify-center shrink-0">
-                        <Icon size={16} className="text-[#E85D26]" />
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-bold text-[#6B7A99] uppercase tracking-wider mb-0.5">{label}</div>
-                        <div className="text-sm font-medium text-[#0D1B3E] whitespace-pre-line leading-relaxed">{value}</div>
+                <h3 className="text-base font-bold text-[#0D1B3E] mb-1">Headquarters</h3>
+                <p className="text-xs text-[#6B7A99] mb-6">Mount Lavinia, Sri Lanka</p>
+
+                <div className="divide-y divide-[#0D1B3E]/8">
+                  <div className="py-4 first:pt-0">
+                    <div className="text-[10px] font-bold text-[#6B7A99] uppercase tracking-wider mb-1">Address</div>
+                    <div className="text-sm font-medium text-[#0D1B3E] leading-relaxed">
+                      No. 312, Galle Road,<br />Mount Lavinia, Sri Lanka
+                    </div>
+                  </div>
+
+                  <a href="tel:+94112638538" className="group flex items-center justify-between gap-3 py-4">
+                    <div>
+                      <div className="text-[10px] font-bold text-[#6B7A99] uppercase tracking-wider mb-1">General Line</div>
+                      <div className="text-sm font-medium text-[#0D1B3E] group-hover:text-[#E85D26] transition-colors">
+                        +94 112 638 538
                       </div>
                     </div>
-                  ))}
+                    <ChevronRight size={16} className="shrink-0 text-[#6B7A99] group-hover:text-[#E85D26] group-hover:translate-x-0.5 transition-all" />
+                  </a>
+
+                  <a
+                    href="https://wa.me/94725516516"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center justify-between gap-3 py-4 last:pb-0"
+                  >
+                    <div>
+                      <div className="text-[10px] font-bold text-[#6B7A99] uppercase tracking-wider mb-1">WhatsApp Sales</div>
+                      <div className="text-sm font-medium text-[#0D1B3E] group-hover:text-[#E85D26] transition-colors">
+                        +94 725 516 516
+                      </div>
+                    </div>
+                    <ChevronRight size={16} className="shrink-0 text-[#6B7A99] group-hover:text-[#E85D26] group-hover:translate-x-0.5 transition-all" />
+                  </a>
                 </div>
               </div>
 
