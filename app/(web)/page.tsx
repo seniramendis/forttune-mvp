@@ -4,6 +4,11 @@ import Footer from '@/components/Footer';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 import { 
   ShoppingCart, ShieldCheck, Heart,
   Search, MessageCircle, Package, X, ChevronLeft, ChevronRight, Minus, Plus, Trash2, CheckCircle,
@@ -124,6 +129,11 @@ export default function ForttuneApp() {
   // --- Add-to-cart "fly" animation state ---
   const cartIconRef = useRef<HTMLButtonElement | null>(null);
   const cartGlyphRef = useRef<HTMLSpanElement | null>(null);
+  const categorySectionRef = useRef<HTMLDivElement | null>(null);
+  const categoryRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const pillsWrapRef = useRef<HTMLDivElement | null>(null);
+  const pillIndicatorRef = useRef<HTMLDivElement | null>(null);
+  const pillButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [flyingItems, setFlyingItems] = useState<{ id: number; x1: number; y1: number; x2: number; y2: number; image?: string }[]>([]);
   const [cartBump, setCartBump] = useState(false);
 
@@ -225,6 +235,144 @@ export default function ForttuneApp() {
     }, 5000);
     return () => clearInterval(interval);
   }, [heroIndex]);
+
+  // Category tiles: scroll-triggered 3D flip-in entrance
+  useEffect(() => {
+    if (page !== 'home') return;
+    const items = categoryRefs.current.filter(Boolean) as HTMLDivElement[];
+    if (!items.length) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        items,
+        { opacity: 0, y: 36, rotateX: -75, transformPerspective: 700, transformOrigin: '50% 100%' },
+        {
+          opacity: 1,
+          y: 0,
+          rotateX: 0,
+          duration: 0.85,
+          ease: 'power4.out',
+          stagger: { each: 0.07, from: 'start' },
+          scrollTrigger: {
+            trigger: categorySectionRef.current,
+            start: 'top 88%',
+            once: true,
+          },
+        }
+      );
+    });
+    return () => ctx.revert();
+  }, [page]);
+
+  const handleCatHoverIn = (el: HTMLDivElement) => {
+    const icon = el.querySelector('.cat-icon-wrap');
+    const glow = el.querySelector('.cat-glow');
+    const letters = el.querySelectorAll('.cat-letter');
+    if (!icon || !glow) return;
+    gsap.killTweensOf([icon, glow, ...Array.from(letters)]);
+    gsap.to(glow, { opacity: 1, scale: 1.5, duration: 0.5, ease: 'power2.out' });
+    gsap.to(icon, { rotate: 360, scale: 1.2, duration: 0.7, ease: 'back.out(2.2)' });
+    gsap.to(letters, {
+      y: -5,
+      color: '#E85D26',
+      duration: 0.35,
+      ease: 'back.out(3)',
+      stagger: { each: 0.02, from: 'center' },
+    });
+  };
+
+  const handleCatHoverOut = (el: HTMLDivElement) => {
+    const icon = el.querySelector('.cat-icon-wrap');
+    const glow = el.querySelector('.cat-glow');
+    const letters = el.querySelectorAll('.cat-letter');
+    if (!icon || !glow) return;
+    gsap.killTweensOf([icon, glow, ...Array.from(letters)]);
+    gsap.to(glow, { opacity: 0, scale: 0.5, duration: 0.4, ease: 'power2.in' });
+    gsap.to(icon, { rotate: 0, scale: 1, x: 0, y: 0, duration: 0.45, ease: 'elastic.out(1, 0.5)' });
+    gsap.to(letters, { y: 0, color: '#6B7A99', duration: 0.3, ease: 'power2.out', stagger: 0.015 });
+  };
+
+  const handleCatMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const icon = el.querySelector('.cat-icon-wrap') as HTMLElement | null;
+    if (!icon) return;
+    const rect = el.getBoundingClientRect();
+    const relX = e.clientX - rect.left - rect.width / 2;
+    const relY = e.clientY - rect.top - rect.height / 2;
+    gsap.to(icon, { x: relX * 0.3, y: relY * 0.3, duration: 0.5, ease: 'power3.out' });
+  };
+
+  // Filter pills: liquid sliding indicator that morphs to the active pill
+  const movePillIndicator = (animate = true) => {
+    const btn = pillButtonRefs.current[activeCat];
+    const wrap = pillsWrapRef.current;
+    const indicator = pillIndicatorRef.current;
+    if (!btn || !wrap || !indicator) return;
+    const btnRect = btn.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    const vars = {
+      x: btnRect.left - wrapRect.left,
+      y: btnRect.top - wrapRect.top,
+      width: btnRect.width,
+      height: btnRect.height,
+    };
+    if (animate) {
+      gsap.to(indicator, { ...vars, duration: 0.55, ease: 'elastic.out(1, 0.8)' });
+    } else {
+      gsap.set(indicator, vars);
+    }
+  };
+
+  useEffect(() => {
+    if (page !== 'products') return;
+    // set position instantly on first mount of this page, then animate on subsequent changes
+    const t = setTimeout(() => movePillIndicator(true), 20);
+    const onResize = () => movePillIndicator(false);
+    window.addEventListener('resize', onResize);
+    return () => { clearTimeout(t); window.removeEventListener('resize', onResize); };
+  }, [activeCat, page]);
+
+  const handlePillHoverIn = (cat: string, el: HTMLButtonElement) => {
+    if (cat === activeCat) return;
+    gsap.killTweensOf(el);
+    gsap.to(el, { scale: 1.08, y: -2, duration: 0.35, ease: 'back.out(3)' });
+  };
+
+  const handlePillHoverOut = (cat: string, el: HTMLButtonElement) => {
+    if (cat === activeCat) return;
+    gsap.killTweensOf(el);
+    gsap.to(el, { scale: 1, y: 0, duration: 0.4, ease: 'elastic.out(1, 0.6)' });
+  };
+
+  const handlePillClick = (cat: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    ripple.style.position = 'absolute';
+    ripple.style.left = `${e.clientX - rect.left}px`;
+    ripple.style.top = `${e.clientY - rect.top}px`;
+    ripple.style.width = '6px';
+    ripple.style.height = '6px';
+    ripple.style.marginLeft = '-3px';
+    ripple.style.marginTop = '-3px';
+    ripple.style.borderRadius = '9999px';
+    ripple.style.background = 'rgba(232,93,38,0.35)';
+    ripple.style.pointerEvents = 'none';
+    ripple.style.zIndex = '5';
+    btn.appendChild(ripple);
+    gsap.fromTo(
+      ripple,
+      { scale: 0, opacity: 0.6 },
+      {
+        scale: 14,
+        opacity: 0,
+        duration: 0.6,
+        ease: 'power2.out',
+        onComplete: () => ripple.remove(),
+      }
+    );
+    setActiveCat(cat);
+  };
 
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
   const [contactSending, setContactSending] = useState(false);
@@ -427,11 +575,68 @@ export default function ForttuneApp() {
     const isRecentlyAdded = p.createdAt ? (new Date().getTime() - new Date(p.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
     const showNewBadge = p.stock > 0 && (p.badge === 'new' || isRecentlyAdded);
 
+    const cardRef = useRef<HTMLDivElement | null>(null);
+    const shineRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+      if (!cardRef.current) return;
+      const ctx = gsap.context(() => {
+        gsap.fromTo(
+          cardRef.current,
+          { opacity: 0, y: 44, rotateX: -22, transformPerspective: 800, transformOrigin: '50% 100%' },
+          {
+            opacity: 1,
+            y: 0,
+            rotateX: 0,
+            duration: 0.7,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: cardRef.current, start: 'top 92%', once: true },
+          }
+        );
+      }, cardRef);
+      return () => ctx.revert();
+    }, []);
+
+    const handleTiltMove = (e: React.MouseEvent<HTMLDivElement>) => {
+      const el = cardRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / rect.width - 0.5;
+      const relY = (e.clientY - rect.top) / rect.height - 0.5;
+      gsap.to(el, {
+        rotateY: relX * 10,
+        rotateX: -relY * 10,
+        transformPerspective: 800,
+        duration: 0.4,
+        ease: 'power2.out',
+      });
+      if (shineRef.current) {
+        gsap.to(shineRef.current, { xPercent: relX * 140, opacity: 0.45, duration: 0.4, ease: 'power2.out' });
+      }
+    };
+
+    const handleTiltLeave = () => {
+      const el = cardRef.current;
+      if (!el) return;
+      gsap.to(el, { rotateY: 0, rotateX: 0, duration: 0.7, ease: 'elastic.out(1, 0.55)' });
+      if (shineRef.current) gsap.to(shineRef.current, { opacity: 0, duration: 0.3, ease: 'power2.in' });
+    };
+
     return (
       <div
+        ref={cardRef}
         onClick={() => openProductDetail(p)}
-        className="bg-white border border-[#0D1B3E]/8 rounded-xl overflow-hidden cursor-pointer hover:border-[#E85D26] hover:shadow-[0_8px_28px_rgba(232,93,38,0.13)] transition-all duration-200 flex flex-col h-full group"
+        onMouseMove={handleTiltMove}
+        onMouseLeave={handleTiltLeave}
+        style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
+        className="relative bg-white border border-[#0D1B3E]/8 rounded-xl overflow-hidden cursor-pointer hover:border-[#E85D26] hover:shadow-[0_8px_28px_rgba(232,93,38,0.13)] transition-[border-color,box-shadow] duration-200 flex flex-col h-full group"
       >
+        {/* SHINE SWEEP */}
+        <div
+          ref={shineRef}
+          className="pointer-events-none absolute inset-0 z-20 opacity-0"
+          style={{ background: 'linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.55) 50%, transparent 60%)' }}
+        />
         {/* IMAGE AREA */}
         <div className="relative bg-[#F5F6FA] h-[160px] w-full overflow-hidden shrink-0 flex items-center justify-center">
           {p.image ? (
@@ -532,7 +737,7 @@ export default function ForttuneApp() {
       
       {/* NAVBAR — floating pill style */}
       <motion.div
-        className="sticky top-0 z-40 px-4 md:px-8 pt-3 pb-1 pointer-events-none"
+        className="fixed top-0 inset-x-0 z-40 px-4 md:px-8 pt-3 pb-1 pointer-events-none"
         animate={{ y: [0, -4, 0] }}
         transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
       >
@@ -799,7 +1004,7 @@ export default function ForttuneApp() {
         )}
       </AnimatePresence>
 
-      <div className="pb-16 md:pb-0">
+      <div className={`pb-16 md:pb-0 ${page === 'home' ? '' : 'pt-[76px]'}`}>
         
         {/* PRODUCT DETAIL PAGE */}
         {page === 'product-detail' && selectedProduct && (
@@ -901,7 +1106,7 @@ export default function ForttuneApp() {
         {page === 'home' && (
           <div>
             {/* HERO */}
-            <div className="relative overflow-hidden border-b border-[#0D1B3E]/8" style={{ minHeight: '420px' }}>
+            <div className="relative overflow-hidden" style={{ minHeight: '100vh' }}>
               {/* Slideshow background images */}
               {HERO_IMAGES.map((src, i) => (
                 <div
@@ -922,11 +1127,8 @@ export default function ForttuneApp() {
               <div className="absolute inset-0 z-10" style={{ background: 'linear-gradient(105deg, rgba(13,27,62,0.82) 0%, rgba(13,27,62,0.55) 55%, rgba(13,27,62,0.25) 100%)' }} />
 
               {/* Content */}
-              <div className="relative z-20 pt-14 pb-14 px-5 md:pt-24 md:pb-20 md:px-10 max-w-7xl mx-auto">
+              <div className="relative z-20 flex flex-col justify-center min-h-screen pt-24 pb-14 px-5 md:pt-28 md:pb-20 md:px-10 max-w-7xl mx-auto">
                 <div className="max-w-[560px]">
-                  <div className="inline-block bg-[#E85D26] text-white text-[10px] font-bold tracking-[1.2px] uppercase px-3 py-1.5 rounded-full mb-5">
-                    Sri Lanka's IT Hardware Distributor
-                  </div>
                   <h1 className="text-white text-[34px] md:text-[52px] font-extrabold leading-[1.15] mb-5 drop-shadow-lg">
                     Premium tech,<br/>
                     delivered to your <span className="text-[#E85D26]">door.</span>
@@ -968,17 +1170,29 @@ export default function ForttuneApp() {
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-lg font-bold text-[#0D1B3E]">Shop by Category</h2>
                 </div>
-                <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
-                  {CATEGORIES.filter(c => c !== 'All').map(cat => (
+                <div ref={categorySectionRef} className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2.5" style={{ perspective: '700px' }}>
+                  {CATEGORIES.filter(c => c !== 'All').map((cat, i) => (
                     <div
                       key={cat}
+                      ref={(el) => { categoryRefs.current[i] = el; }}
                       onClick={() => handleCategoryClick(cat)}
-                      className="group bg-white border border-[#0D1B3E]/8 rounded-2xl py-5 px-2 text-center cursor-pointer hover:border-[#E85D26]/40 hover:shadow-[0_4px_20px_rgba(232,93,38,0.10)] transition-all duration-200 flex flex-col items-center gap-2.5"
+                      onMouseEnter={(e) => handleCatHoverIn(e.currentTarget)}
+                      onMouseMove={handleCatMouseMove}
+                      onMouseLeave={(e) => handleCatHoverOut(e.currentTarget)}
+                      className="group relative cursor-pointer py-6 px-2 text-center flex flex-col items-center gap-3"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-[#F5F6FA] group-hover:bg-[#E85D26]/8 flex items-center justify-center transition-colors duration-200">
-                        {getCatIcon(cat, "text-[#0D1B3E]/40 group-hover:text-[#E85D26] transition-colors duration-200", 18)}
+                      <div
+                        className="cat-glow pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full opacity-0"
+                        style={{ background: 'radial-gradient(circle, rgba(232,93,38,0.35) 0%, rgba(232,93,38,0) 72%)' }}
+                      />
+                      <div className="cat-icon-wrap relative w-11 h-11 flex items-center justify-center">
+                        {getCatIcon(cat, "text-[#0D1B3E]/45 group-hover:text-[#E85D26] transition-colors duration-300", 24)}
                       </div>
-                      <span className="text-[10px] font-semibold text-[#6B7A99] group-hover:text-[#0D1B3E] leading-tight tracking-wide uppercase transition-colors duration-200">{cat}</span>
+                      <span className="relative text-[10px] font-semibold text-[#6B7A99] leading-tight tracking-wide uppercase flex justify-center flex-wrap">
+                        {cat.split('').map((ch, ci) => (
+                          <span key={ci} className="cat-letter inline-block">{ch === ' ' ? '\u00A0' : ch}</span>
+                        ))}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1119,12 +1333,20 @@ export default function ForttuneApp() {
               </div>
             </div>
             
-            <div className="flex gap-2 flex-wrap mb-7">
+            <div ref={pillsWrapRef} className="relative flex gap-2 flex-wrap mb-7">
+              <div
+                ref={pillIndicatorRef}
+                className="absolute top-0 left-0 rounded-full bg-[#0D1B3E] z-0"
+                style={{ width: 0, height: 0 }}
+              />
               {CATEGORIES.map(cat => (
                 <button 
                   key={cat} 
-                  onClick={() => setActiveCat(cat)}
-                  className={`text-[12px] font-semibold px-4 py-2 rounded-full cursor-pointer transition-colors border ${activeCat === cat ? 'bg-[#0D1B3E] text-white border-[#0D1B3E]' : 'bg-white text-[#6B7A99] border-[#0D1B3E]/10 hover:border-[#E85D26] hover:text-[#E85D26]'}`}
+                  ref={(el) => { pillButtonRefs.current[cat] = el; }}
+                  onClick={(e) => handlePillClick(cat, e)}
+                  onMouseEnter={(e) => handlePillHoverIn(cat, e.currentTarget)}
+                  onMouseLeave={(e) => handlePillHoverOut(cat, e.currentTarget)}
+                  className={`relative z-10 overflow-hidden text-[12px] font-semibold px-4 py-2 rounded-full cursor-pointer border transition-colors duration-300 ${activeCat === cat ? 'text-white border-[#0D1B3E]' : 'bg-white text-[#6B7A99] border-[#0D1B3E]/10 hover:border-[#E85D26] hover:text-[#E85D26]'}`}
                 >
                   {cat}
                 </button>
