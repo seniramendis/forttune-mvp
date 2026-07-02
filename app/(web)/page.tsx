@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { 
-  ShoppingCart, Truck, Award, HeadphonesIcon, ShieldCheck, Store, Heart,
+  ShoppingCart, ShieldCheck, Heart,
   Search, MessageCircle, Package, X, ChevronLeft, ChevronRight, Minus, Plus, Trash2, CheckCircle,
   User, LogOut, ChevronDown, Wrench, Camera, Wifi
 } from 'lucide-react';
@@ -959,23 +959,6 @@ export default function ForttuneApp() {
                     />
                   ))}
                 </div>
-              </div>
-            </div>
-
-            {/* TRUST BAR */}
-            <div className="bg-white border-b border-[#0D1B3E]/8">
-              <div className="max-w-7xl mx-auto px-5 md:px-10 py-4 flex gap-6 md:gap-10 overflow-x-auto">
-                {[
-                  [Truck, 'Island-wide delivery'],
-                  [Award, 'Official warranty'],
-                  [HeadphonesIcon, 'B2B support'],
-                  [Store, 'Mt. Lavinia pickup'],
-                ].map(([Icon, label]: any) => (
-                  <div key={label} className="flex items-center gap-2.5 whitespace-nowrap">
-                    <Icon size={16} className="text-[#E85D26] shrink-0" />
-                    <span className="text-[12px] text-[#0D1B3E] font-semibold">{label}</span>
-                  </div>
-                ))}
               </div>
             </div>
 
